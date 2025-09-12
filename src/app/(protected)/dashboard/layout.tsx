@@ -15,8 +15,8 @@ export default async function ProtectedLayout({
     redirect("/auth/signin");
   }
 
-  if (!session.user.emailVerified) {
-    redirect("/auth/signin?error=EmailNotVerified");
+  if (session.user.email && !session.user.emailVerified) {
+    redirect("/auth/error?error=EmailNotVerified&email=" + session.user.email);
   }
 
   return <div className="min-h-screen bg-background">{children}</div>;

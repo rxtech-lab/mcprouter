@@ -1,18 +1,33 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuthCard } from "../../components/auth/AuthCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ResendVerificationButton } from "../../components/auth/ResendVerificationButton";
 import Link from "next/link";
 
 export default function VerifyRequestPage() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || undefined;
+  const error = searchParams.get("error");
+  const [hasVerificationError, setHasVerificationError] = useState(false);
+
+  // Check if we have EmailNotVerified error or any verification error from resend
+  const shouldHideButtons =
+    error === "EmailNotVerified" || hasVerificationError;
+
   return (
     <AuthCard
       title="Check your email"
       description="We've sent you a verification link"
     >
-      <Alert>
+      <Alert variant={error === "EmailNotVerified" ? "destructive" : "default"}>
         <AlertDescription>
-          We've sent a verification link to your email address. Please check
-          your inbox and click the link to complete your sign in.
+          {error === "EmailNotVerified"
+            ? "Your email address needs to be verified before you can sign in. Please check your inbox and click the verification link."
+            : "We've sent a verification link to your email address. Please check your inbox and click the link to complete your sign in."}
         </AlertDescription>
       </Alert>
 
@@ -22,14 +37,27 @@ export default function VerifyRequestPage() {
             Didn't receive the email? Check your spam folder or try again.
           </p>
 
-          <div className="flex gap-2 justify-center">
-            <Button variant="outline" asChild>
-              <Link href="/auth/signin">Try again</Link>
-            </Button>
+          <div
+            className={`${shouldHideButtons ? "flex justify-center" : "flex gap-2 justify-center"}`}
+          >
+            {email ? (
+              <ResendVerificationButton
+                email={email}
+                onErrorStateChange={setHasVerificationError}
+              />
+            ) : (
+              !shouldHideButtons && (
+                <Button variant="outline" asChild>
+                  <Link href="/auth/signin">Try again</Link>
+                </Button>
+              )
+            )}
 
-            <Button variant="outline" asChild>
-              <Link href="/">Back to home</Link>
-            </Button>
+            {!shouldHideButtons && (
+              <Button variant="outline" asChild>
+                <Link href="/">Back to home</Link>
+              </Button>
+            )}
           </div>
         </div>
 

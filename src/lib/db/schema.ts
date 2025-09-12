@@ -23,6 +23,7 @@ export const users = pgTable("User", {
   role: text("role", {
     enum: ["admin", "user"],
   }).default("user"),
+  lastVerificationEmailSent: timestamp("lastVerificationEmailSent"),
 });
 
 /**
@@ -78,21 +79,4 @@ export const authenticators = pgTable("Authenticator", {
 
 export const authenticatorsPK = primaryKey({
   columns: [authenticators.userId, authenticators.credentialID],
-});
-
-export const authenticatorsCredentialIdIdx = uniqueIndex(
-  "Authenticator_credentialID_key"
-).on(authenticators.credentialID);
-
-/**
- * Verification token table - email verification and password reset tokens
- */
-export const verificationTokens = pgTable("VerificationToken", {
-  identifier: text("identifier").notNull(),
-  token: text("token").notNull(),
-  expires: timestamp("expires", { mode: "date" }).notNull(),
-});
-
-export const verificationTokensPK = primaryKey({
-  columns: [verificationTokens.identifier, verificationTokens.token],
 });

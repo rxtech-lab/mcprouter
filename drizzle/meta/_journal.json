@@ -1,1 +1,13 @@
-{"version":"7","dialect":"postgresql","entries":[]}
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1757697449515,
+      "tag": "0000_lazy_selene",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PasskeyButton } from "../components/auth/PasskeyButton";
+import { PasskeyButton } from "@/app/components/auth/PasskeyButton";
 
 export default async function ProtectedPage() {
   const session = await auth();
@@ -76,7 +76,10 @@ export default async function ProtectedPage() {
                 Add a passkey to enable secure, passwordless authentication for
                 future logins.
               </p>
-              <PasskeyButton mode="register" />
+              <PasskeyButton
+                mode="signup"
+                email={session.user.email || undefined}
+              />
             </div>
           </CardContent>
         </Card>
@@ -89,12 +92,7 @@ export default async function ProtectedPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
-            >
+            <form action={async () => {}}>
               <Button type="submit" variant="outline">
                 Sign Out
               </Button>

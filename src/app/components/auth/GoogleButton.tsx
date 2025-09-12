@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 interface GoogleButtonProps {
   mode: "signin" | "signup";
@@ -21,6 +22,11 @@ export function GoogleButton({ mode, disabled }: GoogleButtonProps) {
       });
     } catch (error) {
       console.error("Google authentication error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong with Google authentication";
+      toast.error(errorMessage);
       setIsLoading(false);
     }
   };
