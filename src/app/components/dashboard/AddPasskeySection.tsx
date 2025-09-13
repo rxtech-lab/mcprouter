@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { PasskeyButton } from "../auth/PasskeyButton";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
 export function AddPasskeySection() {
   const [authenticatorName, setAuthenticatorName] = useState("");
+  const router = useRouter();
   return (
     <div className="space-y-2">
       <h4 className="font-medium">Add Passkey</h4>
@@ -22,6 +24,7 @@ export function AddPasskeySection() {
         mode="add-passkey"
         passkeyName={authenticatorName}
         disabled={false}
+        onComplete={() => router.refresh()}
       />
     </div>
   );

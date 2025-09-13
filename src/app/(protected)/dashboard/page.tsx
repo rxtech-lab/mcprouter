@@ -87,7 +87,7 @@ export default async function ProtectedPage() {
                       variant="outline"
                       className="capitalize"
                     >
-                      {authenticator.credentialDeviceType}
+                      {authenticator.name}
                     </Badge>
                   ))}
                 </div>

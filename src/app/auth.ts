@@ -62,7 +62,7 @@ export async function signUpWithEmail(email: string) {
 
     if (existingUser?.emailVerified) {
       throw new Error(
-        "An account with this email already exists. Please sign in instead."
+        "An account with this email already exists. Please sign in instead.",
       );
     }
 
@@ -172,10 +172,10 @@ export async function resendVerificationEmail(email: string) {
 
       if (timeSinceLastEmail < cooldownMs) {
         const remainingSeconds = Math.ceil(
-          (cooldownMs - timeSinceLastEmail) / 1000
+          (cooldownMs - timeSinceLastEmail) / 1000,
         );
         throw new Error(
-          `Please wait ${remainingSeconds} seconds before requesting another email`
+          `Please wait ${remainingSeconds} seconds before requesting another email`,
         );
       }
     }

@@ -15,6 +15,7 @@ interface AddPasskeyProps {
   mode: "add-passkey";
   passkeyName: string;
   disabled: boolean;
+  onComplete?: () => void;
 }
 
 interface PasskeyAuthenticationProps {
@@ -125,7 +126,7 @@ export function PasskeyButton({
     const beginResponse = await fetch("/api/webauthn/registration/begin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: passkeyName, mode: "add-passkey" }),
+      body: JSON.stringify({ passkeyName, mode: "add-passkey" }),
     });
 
     if (!beginResponse.ok) {
@@ -145,7 +146,7 @@ export function PasskeyButton({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential, sessionId }),
-      },
+      }
     );
 
     if (!completeResponse.ok) {
@@ -156,6 +157,7 @@ export function PasskeyButton({
     const result = await completeResponse.json();
     if (result.verified) {
       toast.success(result.message || "Passkey added successfully!");
+      props.onComplete?.();
     } else {
       throw new Error("Failed to verify passkey");
     }

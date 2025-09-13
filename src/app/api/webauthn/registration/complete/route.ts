@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       credentialDeviceType: "singleDevice", // Default for now
       credentialBackedUp: false,
       transports: credential.response.transports?.join(",") || null,
+      name: challengeData.passkeyName || "default",
     });
 
     // Clean up challenge

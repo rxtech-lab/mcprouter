@@ -8,6 +8,7 @@ export interface WebAuthnRegistrationChallenge {
   options: PublicKeyCredentialCreationOptionsJSON;
   userId?: string; // For adding passkey to existing user
   email?: string; // For new user registration
+  passkeyName?: string; // For custom passkey names
   timestamp: number;
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE "Authenticator" ADD COLUMN "name" text DEFAULT 'default' NOT NULL;
