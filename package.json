@@ -10,6 +10,7 @@
     "lint": "biome check",
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
+    "db:generate:e2e": "NODE_ENV=test drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:e2e": "NODE_ENV=test drizzle-kit migrate",
     "typecheck": "tsc --noEmit",
