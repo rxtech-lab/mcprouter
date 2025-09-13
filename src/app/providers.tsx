@@ -19,14 +19,14 @@ export function Providers({ children }: ProvidersProps) {
             refetchOnWindowFocus: true,
           },
         },
-      }),
+      })
   );
 
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         {children}
-        <Toaster />
+        <Toaster position="top-right" />
       </SessionProvider>
     </QueryClientProvider>
   );

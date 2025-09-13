@@ -7,7 +7,8 @@ import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { accounts, authenticators, db, sessions, users } from "./lib/db";
+import { resendVerificationEmail } from "./app/actions/auth";
+import { accounts, authenticators, db, users } from "./lib/db";
 import { getUserByEmail } from "./lib/db/queries/user_queries";
 import { AuthenticatorNotFoundError } from "./lib/errors/auth.error";
 import {
@@ -16,9 +17,8 @@ import {
   getAuthenticationChallenge,
   getRegistrationChallenge,
 } from "./lib/redis/challenge-queries";
-import { resendVerificationEmail } from "./app/actions/auth";
 
-export const { handlers, signIn, auth } = NextAuth({
+export const { handlers, signIn, auth, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
@@ -220,6 +220,14 @@ export const { handlers, signIn, auth } = NextAuth({
       }
 
       return true;
+    },
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.emailVerified = user.emailVerified;
+        token.role = user.role || "user";
+      }
+      return token;
     },
     session({ session, user, token }) {
       if (token) {

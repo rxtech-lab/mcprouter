@@ -1,22 +1,48 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useSession, signIn } from "next-auth/react";
 import {
-  startRegistration,
   startAuthentication,
+  startRegistration,
 } from "@simplewebauthn/browser";
-import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { useState } from "react";
 import { toast } from "sonner";
 
-interface PasskeyButtonProps {
-  mode: "signin" | "signup";
-  email?: string;
+type Mode = "signin" | "signup" | "add-passkey";
+
+interface AddPasskeyProps {
+  mode: "add-passkey";
+  passkeyName: string;
+  disabled: boolean;
+}
+
+interface PasskeyAuthenticationProps {
+  mode: Exclude<Mode, "add-passkey">;
+  email: string;
   disabled?: boolean;
 }
 
-export function PasskeyButton({ mode, email, disabled }: PasskeyButtonProps) {
+type PasskeyButtonProps = AddPasskeyProps | PasskeyAuthenticationProps;
+
+/**
+ * PasskeyButton component that handles passkey authentication and registration
+ *
+ * When signing or signing up with email, we need to pass the email to the button
+ * When adding a passkey, we don't need to pass the email to the button but we need to pass the passkey name
+ *
+ * @param mode - The mode of the button
+ * @param disabled - Whether the button is disabled
+ * @param props - The props of the button
+ *
+ * @param param0 PasskeyButtonProps
+ * @returns
+ */
+export function PasskeyButton({
+  mode,
+  disabled,
+  ...props
+}: PasskeyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
 
@@ -43,6 +69,16 @@ export function PasskeyButton({ mode, email, disabled }: PasskeyButtonProps) {
   };
 
   const handlePasskeySignup = async () => {
+    // For add-passkey mode, we don't need email as user is already authenticated
+    if (mode !== "add-passkey" && !("email" in props)) {
+      throw new Error("Email is required for passkey signup");
+    }
+
+    const email =
+      mode === "add-passkey"
+        ? session?.user?.email
+        : (props as PasskeyAuthenticationProps).email;
+
     if (!email) {
       throw new Error("Email is required for passkey signup");
     }
@@ -55,7 +91,7 @@ export function PasskeyButton({ mode, email, disabled }: PasskeyButtonProps) {
     const beginResponse = await fetch("/api/webauthn/registration/begin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, mode: registrationMode }),
+      body: JSON.stringify({ email, mode: registrationMode }),
     });
 
     if (!beginResponse.ok) {
@@ -79,6 +115,13 @@ export function PasskeyButton({ mode, email, disabled }: PasskeyButtonProps) {
   };
 
   const handlePasskeySignin = async () => {
+    // For signin mode, we need the email from props
+    if (!("email" in props)) {
+      throw new Error("Email is required for passkey signin");
+    }
+
+    const email = (props as PasskeyAuthenticationProps).email;
+
     // Begin authentication
     const beginResponse = await fetch("/api/webauthn/authentication/begin", {
       method: "POST",

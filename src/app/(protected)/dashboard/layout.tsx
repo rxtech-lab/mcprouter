@@ -14,6 +14,7 @@ export default async function ProtectedLayout({
   if (!session?.user) {
     redirect("/auth/signin");
   }
+  console.log("session", session);
 
   if (session.user.email && !session.user.emailVerified) {
     redirect("/auth/error?error=EmailNotVerified&email=" + session.user.email);
