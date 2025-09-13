@@ -17,23 +17,54 @@ export default async function ErrorPage({ searchParams }: SignInPageProps) {
   const getErrorMessage = (error: string) => {
     switch (error) {
       case "EmailNotVerified":
-        return "Please verify your email address before signing in. Check your inbox for a verification link.";
+        return (
+          <span data-testid="email-not-verified-error">
+            Please verify your email address before signing in. Check your inbox
+            for a verification link.
+          </span>
+        );
       case "Configuration":
-        return "There is a problem with the server configuration. Please try again later.";
+        return (
+          <span data-testid="configuration-error">
+            There is a problem with the server configuration. Please try again
+            later.
+          </span>
+        );
       case "AccessDenied":
-        return "Access denied. You do not have permission to sign in.";
+        return (
+          <span data-testid="access-denied-error">
+            Access denied. You do not have permission to sign in.
+          </span>
+        );
       case "Verification":
-        return "The verification link is invalid or has expired. Please request a new one.";
+        return (
+          <span data-testid="verification-error">
+            The verification link is invalid or has expired. Please request a
+            new one.
+          </span>
+        );
       default:
         if (code) {
           switch (code) {
             case "AuthenticatorNotFound":
-              return "The authenticator was not found. Please try again.";
+              return (
+                <span data-testid="authenticator-not-found-error">
+                  The authenticator was not found. Please try again.
+                </span>
+              );
             default:
-              return "An error occurred during sign in. Please try again.";
+              return (
+                <span data-testid="default-error">
+                  An error occurred during sign in. Please try again.
+                </span>
+              );
           }
         }
-        return "An error occurred during sign in. Please try again.";
+        return (
+          <span data-testid="default-error">
+            An error occurred during sign in. Please try again.
+          </span>
+        );
     }
   };
 
@@ -62,6 +93,7 @@ export default async function ErrorPage({ searchParams }: SignInPageProps) {
         <Link
           href={redirectFrom || "/auth/signin"}
           className="font-bold underline"
+          data-testid="back-to-previous-page"
         >
           Back to previous page
         </Link>

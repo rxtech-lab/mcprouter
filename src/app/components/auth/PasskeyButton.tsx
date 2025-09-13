@@ -146,7 +146,7 @@ export function PasskeyButton({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential, sessionId }),
-      }
+      },
     );
 
     if (!completeResponse.ok) {
@@ -217,6 +217,7 @@ export function PasskeyButton({
       className="w-full"
       onClick={handlePasskeyAuth}
       disabled={disabled || isLoading}
+      data-testid={`passkey-${mode}-button`}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none">
         <path

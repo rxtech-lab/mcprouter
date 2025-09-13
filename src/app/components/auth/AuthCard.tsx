@@ -21,11 +21,21 @@ export function AuthCard({
   className,
 }: AuthCardProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Card className={cn("w-full max-w-md", className)}>
+    <div
+      className="flex min-h-screen items-center justify-center"
+      data-testid="auth-page"
+    >
+      <Card
+        className={cn("w-full max-w-md", className)}
+        data-testid="auth-card"
+      >
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardTitle className="text-2xl font-bold" data-testid="auth-title">
+            {title}
+          </CardTitle>
+          <CardDescription data-testid="auth-description">
+            {description}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">{children}</CardContent>
       </Card>

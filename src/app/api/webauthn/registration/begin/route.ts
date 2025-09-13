@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     if (!["signup", "add-passkey"].includes(mode)) {
       return NextResponse.json(
         { error: "Invalid mode. Must be 'signup' or 'add-passkey'" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       if (!session?.user?.id) {
         return NextResponse.json(
           { error: "Authentication required for adding passkey" },
-          { status: 401 }
+          { status: 401 },
         );
       }
       userId = session.user.id;
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       if (!email) {
         return NextResponse.json(
           { error: "Email is required for signup" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       if (existingUser?.emailVerified) {
         return NextResponse.json(
           { error: "User already exists with this email" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     console.error("WebAuthn registration begin error:", error);
     return NextResponse.json(
       { error: "Failed to begin registration" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

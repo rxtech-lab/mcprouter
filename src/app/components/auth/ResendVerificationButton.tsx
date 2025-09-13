@@ -124,6 +124,7 @@ export function ResendVerificationButton({
         disabled={isDisabled}
         variant={variant}
         className="relative"
+        data-testid="resend-verification-button"
       >
         {(isLoading || isRedirecting) && (
           <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />

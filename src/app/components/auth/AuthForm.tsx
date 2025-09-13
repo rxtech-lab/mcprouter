@@ -23,13 +23,20 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const isFormDisabled = isLoading;
 
+  // Email validation helper
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const isPasskeyDisabled =
-    mode === "signup" ? isFormDisabled || email.length === 0 : false;
+    mode === "signup"
+      ? isFormDisabled || email.length === 0 || !isValidEmail(email)
+      : isFormDisabled;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="auth-form">
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" data-testid="auth-error">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -41,7 +48,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         />
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2" data-testid="auth-buttons-container">
         <GoogleButton mode={mode} disabled={isFormDisabled} />
         <PasskeyButton mode={mode} disabled={isPasskeyDisabled} email={email} />
       </div>

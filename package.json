@@ -11,7 +11,11 @@
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "typecheck": "tsc --noEmit"
+    "db:migrate:e2e": "NODE_ENV=test drizzle-kit migrate",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.10.0",
@@ -44,6 +48,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

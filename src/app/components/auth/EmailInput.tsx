@@ -33,7 +33,7 @@ export function EmailInput({
     (value && !isValidEmail(value) ? "Please enter a valid email address" : "");
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-testid="email-input-container">
       <Label htmlFor="email">Email</Label>
       <Input
         id="email"
@@ -44,8 +44,13 @@ export function EmailInput({
         onBlur={handleBlur}
         disabled={disabled}
         className={showError ? "border-red-500" : ""}
+        data-testid="email-input"
       />
-      {showError && <p className="text-sm text-red-500">{errorMessage}</p>}
+      {showError && (
+        <p className="text-sm text-red-500" data-testid="email-input-error">
+          {errorMessage}
+        </p>
+      )}
     </div>
   );
 }

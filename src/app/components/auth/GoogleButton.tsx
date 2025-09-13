@@ -40,6 +40,7 @@ export function GoogleButton({ mode, disabled }: GoogleButtonProps) {
       className="w-full"
       onClick={handleGoogleAuth}
       disabled={disabled || isLoading}
+      data-testid={`google-${mode}-button`}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
         <path
