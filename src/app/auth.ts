@@ -1,7 +1,8 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { auth, signIn } from "@/auth";
 import { getUserByEmail } from "@/lib/db/queries/user_queries";
+import { getAuthenticatorsByUserId } from "@/lib/db/queries/authenticator_queries";
 import { AuthError } from "next-auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -98,9 +99,14 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function verifyEmailToken(email: string, token: string) {
+export async function verifyEmailToken(token: string) {
   try {
     // Get the verification token from Redis
+    const session = await auth();
+    if (!session?.user?.email) {
+      throw new Error("User does not have an email");
+    }
+    const email = session.user.email;
     const verificationToken = await getVerificationToken(email, token);
 
     if (!verificationToken) {
@@ -144,7 +150,11 @@ export async function verifyEmailToken(email: string, token: string) {
 
 export async function resendVerificationEmail(email: string) {
   try {
-    const user = await getUserByEmail(email);
+    const session = await auth();
+    if (!session?.user?.email) {
+      throw new Error("User does not have an email");
+    }
+    const user = await getUserByEmail(session?.user?.email!);
 
     if (!user) {
       throw new Error("User not found");
@@ -211,4 +221,16 @@ export async function checkEmailVerificationStatus(email: string) {
     console.error("Error checking email verification status:", error);
     return { isVerified: false };
   }
+}
+
+/**
+ * Get list of the authenticators base on the current signed in user
+ */
+export async function getAuthenticators() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("User not authenticated");
+  }
+  return await getAuthenticatorsByUserId(session.user.id);
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { verifyEmailToken } from "@/app/actions/auth";
+import { verifyEmailToken } from "@/app/auth";
 import { AuthCard } from "@/app/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,7 +27,7 @@ export default function VerifyPage() {
       }
 
       try {
-        await verifyEmailToken(email, token);
+        await verifyEmailToken(token);
         setIsSuccess(true);
       } catch (error) {
         const errorMessage =

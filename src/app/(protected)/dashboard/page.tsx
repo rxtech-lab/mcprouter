@@ -1,4 +1,7 @@
+import { getAuthenticators } from "@/app/auth";
+import { AddPasskeySection } from "@/app/components/dashboard/AddPasskeySection";
 import { auth, signOut } from "@/auth";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,11 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PasskeyButton } from "@/app/components/auth/PasskeyButton";
 
 export default async function ProtectedPage() {
   const session = await auth();
+  const authenticators = await getAuthenticators();
 
   if (!session?.user) {
     return null; // This will be handled by the layout
@@ -70,17 +72,28 @@ export default async function ProtectedPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <h4 className="font-medium">Add Passkey</h4>
-              <p className="text-sm text-muted-foreground">
-                Add a passkey to enable secure, passwordless authentication for
-                future logins.
-              </p>
-              <PasskeyButton
-                mode="signup"
-                email={session.user.email || undefined}
-              />
-            </div>
+            {authenticators.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Authenticators:</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {authenticators.length} registered
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {authenticators.map((authenticator) => (
+                    <Badge
+                      key={authenticator.credentialID}
+                      variant="outline"
+                      className="capitalize"
+                    >
+                      {authenticator.credentialDeviceType}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <AddPasskeySection />
           </CardContent>
         </Card>
 

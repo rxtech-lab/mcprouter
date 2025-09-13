@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { checkEmailVerificationStatus } from "@/app/actions/auth";
+import { checkEmailVerificationStatus } from "@/app/auth";
 
 interface UseCheckUserEmailVerifiedOptions {
   enabled?: boolean;

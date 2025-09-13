@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { resendVerificationEmail } from "@/app/actions/auth";
+import { resendVerificationEmail } from "@/app/auth";
 import { useCheckUserEmailVerified } from "@/hooks/useCheckUserEmailVerified";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 
@@ -30,7 +30,7 @@ export function ResendVerificationButton({
   const [countdown, setCountdown] = useState(0);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | null>(
-    null
+    null,
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -75,7 +75,7 @@ export function ResendVerificationButton({
     try {
       await resendVerificationEmail(email);
       setMessage(
-        "Verification email sent successfully! Please check your inbox."
+        "Verification email sent successfully! Please check your inbox.",
       );
       setMessageType("success");
       setCountdown(60);

@@ -75,6 +75,7 @@ export const authenticators = pgTable("Authenticator", {
   credentialDeviceType: text("credentialDeviceType").notNull(),
   credentialBackedUp: boolean("credentialBackedUp").notNull(),
   transports: text("transports"),
+  name: text("name").notNull().default("default"),
 });
 
 export const authenticatorsPK = primaryKey({

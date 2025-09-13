@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { resendVerificationEmail } from "./app/actions/auth";
+import { resendVerificationEmail } from "./app/auth";
 import { accounts, authenticators, db, users } from "./lib/db";
 import { getUserByEmail } from "./lib/db/queries/user_queries";
 import { AuthenticatorNotFoundError } from "./lib/errors/auth.error";
@@ -140,7 +140,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
         // Find the authenticator
         const credentialID = Buffer.from(
           parsedCredential.rawId,
-          "base64url"
+          "base64url",
         ).toString("base64url");
 
         const authenticator = await db
@@ -176,7 +176,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
             credentialID: Buffer.from(auth.credentialID, "base64url"),
             credentialPublicKey: Buffer.from(
               auth.credentialPublicKey,
-              "base64url"
+              "base64url",
             ),
             counter: auth.counter,
           },

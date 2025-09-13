@@ -52,6 +52,9 @@ export function PasskeyButton({
       if (mode === "signup") {
         // Handle passkey signup
         await handlePasskeySignup();
+      } else if (mode === "add-passkey") {
+        // Handle adding passkey to existing account
+        await handleAddPasskey();
       } else {
         // Handle passkey signin
         await handlePasskeySignin();
@@ -69,15 +72,12 @@ export function PasskeyButton({
   };
 
   const handlePasskeySignup = async () => {
-    // For add-passkey mode, we don't need email as user is already authenticated
-    if (mode !== "add-passkey" && !("email" in props)) {
+    // For signup mode, we need email from props
+    if (!("email" in props)) {
       throw new Error("Email is required for passkey signup");
     }
 
-    const email =
-      mode === "add-passkey"
-        ? session?.user?.email
-        : (props as PasskeyAuthenticationProps).email;
+    const email = (props as PasskeyAuthenticationProps).email;
 
     if (!email) {
       throw new Error("Email is required for passkey signup");
@@ -85,13 +85,11 @@ export function PasskeyButton({
 
     console.log("userEmail", email);
 
-    const registrationMode = session?.user?.id ? "add-passkey" : "signup";
-
     // Begin registration
     const beginResponse = await fetch("/api/webauthn/registration/begin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, mode: registrationMode }),
+      body: JSON.stringify({ email, mode: "signup" }),
     });
 
     if (!beginResponse.ok) {
@@ -105,12 +103,61 @@ export function PasskeyButton({
     const credential = await startRegistration(options);
 
     // Use NextAuth signIn for new user signup
-    if (registrationMode === "signup") {
-      await signIn("webauthn-registration", {
-        credential: JSON.stringify(credential),
-        sessionId,
-        redirect: true,
-      });
+    await signIn("webauthn-registration", {
+      credential: JSON.stringify(credential),
+      sessionId,
+      redirect: true,
+    });
+  };
+
+  const handleAddPasskey = async () => {
+    if (!session?.user?.email) {
+      throw new Error("You must be signed in to add a passkey");
+    }
+
+    if (!("passkeyName" in props)) {
+      throw new Error("Passkey name is required for adding a passkey");
+    }
+
+    const passkeyName = (props as AddPasskeyProps).passkeyName;
+
+    // Begin registration for add-passkey mode
+    const beginResponse = await fetch("/api/webauthn/registration/begin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: passkeyName, mode: "add-passkey" }),
+    });
+
+    if (!beginResponse.ok) {
+      const error = await beginResponse.json();
+      throw new Error(error.error || "Failed to begin passkey registration");
+    }
+
+    const { options, sessionId } = await beginResponse.json();
+
+    // Start WebAuthn registration
+    const credential = await startRegistration(options);
+
+    // Complete registration directly via API endpoint
+    const completeResponse = await fetch(
+      "/api/webauthn/registration/complete",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential, sessionId }),
+      },
+    );
+
+    if (!completeResponse.ok) {
+      const error = await completeResponse.json();
+      throw new Error(error.error || "Failed to add passkey");
+    }
+
+    const result = await completeResponse.json();
+    if (result.verified) {
+      toast.success(result.message || "Passkey added successfully!");
+    } else {
+      throw new Error("Failed to verify passkey");
     }
   };
 
@@ -155,6 +202,8 @@ export function PasskeyButton({
         return "Sign in with Passkey";
       case "signup":
         return "Sign up with Passkey";
+      case "add-passkey":
+        return "Add Passkey";
       default:
         return "Continue with Passkey";
     }

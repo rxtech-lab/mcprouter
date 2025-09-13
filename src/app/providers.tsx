@@ -19,7 +19,7 @@ export function Providers({ children }: ProvidersProps) {
             refetchOnWindowFocus: true,
           },
         },
-      })
+      }),
   );
 
   return (
