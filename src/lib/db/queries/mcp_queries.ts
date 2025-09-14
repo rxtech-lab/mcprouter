@@ -1,5 +1,5 @@
 import { db } from "../index";
-import { mcpServers } from "../schema";
+import { mcpServers, changelogs } from "../schema";
 import { eq, and, desc, lt, SQL, ilike, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -20,27 +20,90 @@ export type McpServerCategory =
 export type McpAuthenticationMethod = "none" | "apiKey" | "oauth";
 
 /**
+ * MCP Server location type enum matching the database schema
+ */
+export type McpServerLocationType = "remote" | "local";
+
+/**
+ * Social links structure matching the database schema
+ */
+export interface SocialLinks {
+  website?: string;
+  twitter?: string;
+  discord?: string;
+  telegram?: string;
+  instagram?: string;
+  youtube?: string;
+  linkedin?: string;
+  facebook?: string;
+  pinterest?: string;
+  reddit?: string;
+  tiktok?: string;
+  twitch?: string;
+  vimeo?: string;
+}
+
+/**
+ * Download link structure for local MCP servers
+ */
+export interface DownloadLink {
+  platform: string;
+  link: string;
+}
+
+/**
+ * Image structure matching the database schema
+ */
+export interface ImageStructure {
+  cover: string;
+  logo: string;
+  icon?: string;
+}
+
+/**
+ * Changelog data structure
+ */
+export interface ChangelogData {
+  id: string;
+  version: string;
+  changelog: string;
+  mcpServerId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
  * Data required to create a new MCP server
  */
 export interface CreateMcpServerData {
   /** The name of the MCP server */
   name: string;
-  /** The URL of the MCP server */
-  url: string;
+  /** Remote url for the MCP server */
+  url?: string;
+  /** Version for the MCP server */
+  version: string;
   /** Optional description of the MCP server */
   description?: string;
+  /** Github repository for the MCP server */
+  github?: string;
+  /** Social links for the MCP server */
+  socialLinks?: SocialLinks;
+  /** Download links for local MCP servers */
+  downloadLinks?: DownloadLink[];
+  /** Location type for the MCP server */
+  locationType?: McpServerLocationType[];
   /** Optional category of the MCP server */
   category?: McpServerCategory;
   /** Optional array of tags for the MCP server */
   tags?: string[];
-  /** Optional image URL for the MCP server */
-  image?: string;
+  /** Image structure for the MCP server */
+  image?: ImageStructure;
   /** Array of supported authentication methods (default: ["none"]) */
   authenticationMethods?: McpAuthenticationMethod[];
   /** The ID of the user creating the MCP server */
   createdBy: string;
   /** Whether the MCP server is public */
-  isPublic: boolean;
+  isPublic?: boolean;
 }
 
 /**
@@ -51,14 +114,24 @@ export interface UpdateMcpServerData {
   name?: string;
   /** Updated URL for the MCP server */
   url?: string;
+  /** Updated version for the MCP server */
+  version?: string;
   /** Updated description for the MCP server */
   description?: string;
+  /** Updated Github repository for the MCP server */
+  github?: string;
+  /** Updated social links for the MCP server */
+  socialLinks?: SocialLinks;
+  /** Updated download links for local MCP servers */
+  downloadLinks?: DownloadLink[];
+  /** Updated location type for the MCP server */
+  locationType?: McpServerLocationType[];
   /** Updated category for the MCP server */
   category?: McpServerCategory;
   /** Updated tags array for the MCP server */
   tags?: string[];
-  /** Updated image URL for the MCP server */
-  image?: string;
+  /** Updated image structure for the MCP server */
+  image?: ImageStructure;
   /** Updated authentication methods for the MCP server */
   authenticationMethods?: McpAuthenticationMethod[];
   /** Updated whether the MCP server is public */
@@ -103,12 +176,18 @@ export interface PaginatedMcpServers {
   data: Array<{
     id: string;
     name: string;
-    url: string;
+    url: string | null;
+    version: string;
     description: string | null;
+    github: string | null;
+    socialLinks: SocialLinks | null;
+    downloadLinks: DownloadLink[] | null;
+    locationType: McpServerLocationType[] | null;
     category: McpServerCategory | null;
     tags: string[] | null;
-    image: string | null;
+    image: ImageStructure | null;
     authenticationMethods: McpAuthenticationMethod[];
+    isPublic: boolean;
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;
@@ -132,14 +211,19 @@ export async function createMcpServer(data: CreateMcpServerData) {
     .values({
       id,
       name: data.name,
-      url: data.url,
+      url: data.url || null,
+      version: data.version,
       description: data.description || null,
+      github: data.github || null,
+      socialLinks: data.socialLinks || null,
+      downloadLinks: data.downloadLinks || null,
+      locationType: data.locationType || null,
       category: data.category || null,
       tags: data.tags || null,
       image: data.image || null,
       authenticationMethods: data.authenticationMethods || ["none"],
-      createdBy: data.createdBy,
       isPublic: data.isPublic || true,
+      createdBy: data.createdBy,
     })
     .returning();
 
@@ -179,7 +263,6 @@ export async function updateMcpServer(
     .set({
       ...data,
       updatedAt: new Date(),
-      isPublic: data.isPublic || true,
     })
     .where(and(eq(mcpServers.id, id), eq(mcpServers.createdBy, userId)))
     .returning();
@@ -310,5 +393,204 @@ export async function searchMcpServers(
     data,
     nextCursor,
     hasMore,
+  };
+}
+
+/**
+ * Changelog query interfaces and functions
+ */
+
+/**
+ * Data required to create a new changelog entry
+ */
+export interface CreateChangelogData {
+  /** Version for the changelog */
+  version: string;
+  /** Changelog content */
+  changelog: string;
+  /** MCP server ID this changelog belongs to */
+  mcpServerId: string;
+}
+
+/**
+ * Optional data for updating an existing changelog entry
+ */
+export interface UpdateChangelogData {
+  /** Updated version for the changelog */
+  version?: string;
+  /** Updated changelog content */
+  changelog?: string;
+}
+
+/**
+ * Creates a new changelog entry in the database
+ * @param data - The changelog data to create
+ * @returns Promise resolving to the created changelog
+ */
+export async function createChangelog(data: CreateChangelogData) {
+  const id = nanoid();
+
+  const [newChangelog] = await db
+    .insert(changelogs)
+    .values({
+      id,
+      version: data.version,
+      changelog: data.changelog,
+      mcpServerId: data.mcpServerId,
+    })
+    .returning();
+
+  return newChangelog;
+}
+
+/**
+ * Retrieves all changelogs for a specific MCP server
+ * @param mcpServerId - The MCP server ID to get changelogs for
+ * @returns Promise resolving to an array of changelogs
+ */
+export async function getChangelogsByServerId(mcpServerId: string) {
+  const results = await db
+    .select()
+    .from(changelogs)
+    .where(eq(changelogs.mcpServerId, mcpServerId))
+    .orderBy(desc(changelogs.createdAt));
+
+  return results;
+}
+
+/**
+ * Retrieves a specific changelog by ID
+ * @param id - The changelog ID to retrieve
+ * @param mcpServerId - The MCP server ID (for verification)
+ * @returns Promise resolving to the changelog or null if not found
+ */
+export async function getChangelogById(id: string, mcpServerId: string) {
+  const [changelog] = await db
+    .select()
+    .from(changelogs)
+    .where(and(eq(changelogs.id, id), eq(changelogs.mcpServerId, mcpServerId)))
+    .limit(1);
+
+  return changelog || null;
+}
+
+/**
+ * Updates an existing changelog entry
+ * @param id - The changelog ID to update
+ * @param mcpServerId - The MCP server ID (for verification)
+ * @param data - The updated changelog data
+ * @returns Promise resolving to the updated changelog or null if not found
+ */
+export async function updateChangelog(
+  id: string,
+  mcpServerId: string,
+  data: UpdateChangelogData,
+) {
+  const [updatedChangelog] = await db
+    .update(changelogs)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(changelogs.id, id), eq(changelogs.mcpServerId, mcpServerId)))
+    .returning();
+
+  return updatedChangelog || null;
+}
+
+/**
+ * Deletes a changelog entry
+ * @param id - The changelog ID to delete
+ * @param mcpServerId - The MCP server ID (for verification)
+ * @returns Promise resolving to the deleted changelog or null if not found
+ */
+export async function deleteChangelog(id: string, mcpServerId: string) {
+  const [deletedChangelog] = await db
+    .delete(changelogs)
+    .where(and(eq(changelogs.id, id), eq(changelogs.mcpServerId, mcpServerId)))
+    .returning();
+
+  return deletedChangelog || null;
+}
+
+/**
+ * Combined query for MCP server with changelogs
+ */
+
+/**
+ * MCP server with associated changelogs
+ */
+export interface McpServerWithChangelogs {
+  id: string;
+  name: string;
+  url: string | null;
+  version: string;
+  description: string | null;
+  github: string | null;
+  socialLinks: SocialLinks | null;
+  downloadLinks: DownloadLink[] | null;
+  locationType: McpServerLocationType[] | null;
+  category: McpServerCategory | null;
+  tags: string[] | null;
+  image: ImageStructure | null;
+  authenticationMethods: McpAuthenticationMethod[];
+  isPublic: boolean;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  changelogs: ChangelogData[];
+}
+
+/**
+ * Retrieves MCP server details with all its changelogs by server ID
+ * @param id - The MCP server ID to retrieve
+ * @param userId - The user ID that owns the MCP server
+ * @returns Promise resolving to the MCP server with changelogs or null if not found
+ */
+export async function getMcpServerDetailWithChangelogs(
+  id: string,
+  userId: string,
+): Promise<McpServerWithChangelogs | null> {
+  // Get the MCP server
+  const mcpServer = await getMcpServerById(id, userId);
+
+  if (!mcpServer) {
+    return null;
+  }
+
+  // Get all changelogs for this server
+  const serverChangelogs = await getChangelogsByServerId(id);
+
+  return {
+    ...mcpServer,
+    changelogs: serverChangelogs,
+  };
+}
+
+/**
+ * Retrieves MCP server details with all its changelogs by server ID (public version - no user verification)
+ * @param id - The MCP server ID to retrieve
+ * @returns Promise resolving to the MCP server with changelogs or null if not found
+ */
+export async function getPublicMcpServerDetailWithChangelogs(
+  id: string,
+): Promise<McpServerWithChangelogs | null> {
+  // Get the MCP server (public version - no user check)
+  const [mcpServer] = await db
+    .select()
+    .from(mcpServers)
+    .where(and(eq(mcpServers.id, id), eq(mcpServers.isPublic, true)))
+    .limit(1);
+
+  if (!mcpServer) {
+    return null;
+  }
+
+  // Get all changelogs for this server
+  const serverChangelogs = await getChangelogsByServerId(id);
+
+  return {
+    ...mcpServer,
+    changelogs: serverChangelogs,
   };
 }

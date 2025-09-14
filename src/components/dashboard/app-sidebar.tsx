@@ -1,9 +1,17 @@
 "use client";
 
-import { Home, Settings, LogOut, User } from "lucide-react";
+import { Key, LogOut, Server, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { handleSignOut } from "@/app/(protected)/dashboard/actions";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -17,14 +25,6 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { handleSignOut } from "@/app/(protected)/dashboard/actions";
 
 interface User {
   name?: string | null;
@@ -39,14 +39,19 @@ interface AppSidebarProps {
 // Menu items.
 const items = [
   {
-    title: "Dashboard",
+    title: "Servers",
     url: "/dashboard",
-    icon: Home,
+    icon: Server,
   },
   {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
+    title: "Keys",
+    url: "/dashboard/keys",
+    icon: Key,
+  },
+  {
+    title: "Security",
+    url: "/dashboard/security",
+    icon: Shield,
   },
 ];
 
