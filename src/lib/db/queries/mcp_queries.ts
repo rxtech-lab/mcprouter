@@ -172,7 +172,7 @@ export async function getMcpServerById(id: string, userId: string) {
 export async function updateMcpServer(
   id: string,
   userId: string,
-  data: UpdateMcpServerData
+  data: UpdateMcpServerData,
 ) {
   const [updatedMcpServer] = await db
     .update(mcpServers)
@@ -208,7 +208,7 @@ export async function deleteMcpServer(id: string, userId: string) {
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function listMcpServers(
-  options: ListMcpServersOptions
+  options: ListMcpServersOptions,
 ): Promise<PaginatedMcpServers> {
   const { userId, category, cursor, limit = 20 } = options;
 
@@ -221,7 +221,7 @@ export async function listMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor))
+      lt(mcpServers.createdAt, new Date(cursor)),
     )!;
   }
 
@@ -257,7 +257,7 @@ export async function listMcpServersByCategory(
   userId: string,
   category: McpServerCategory,
   cursor?: string,
-  limit = 20
+  limit = 20,
 ): Promise<PaginatedMcpServers> {
   return listMcpServers({ userId, category, cursor, limit });
 }
@@ -268,7 +268,7 @@ export async function listMcpServersByCategory(
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function searchMcpServers(
-  options: SearchMcpServersOptions
+  options: SearchMcpServersOptions,
 ): Promise<PaginatedMcpServers> {
   const { userId, query, category, cursor, limit = 20 } = options;
 
@@ -278,8 +278,8 @@ export async function searchMcpServers(
     eq(mcpServers.createdBy, userId),
     or(
       ilike(mcpServers.name, searchPattern),
-      ilike(mcpServers.description, searchPattern)
-    )
+      ilike(mcpServers.description, searchPattern),
+    ),
   )!;
 
   if (category) {
@@ -289,7 +289,7 @@ export async function searchMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor))
+      lt(mcpServers.createdAt, new Date(cursor)),
     )!;
   }
 

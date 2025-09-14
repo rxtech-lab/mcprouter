@@ -5,7 +5,15 @@ import { PasskeyButton } from "../auth/PasskeyButton";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 
-export function AddPasskeySection() {
+interface AddPasskeySectionProps {
+  session?: {
+    user: {
+      email?: string | null;
+    };
+  } | null;
+}
+
+export function AddPasskeySection({ session }: AddPasskeySectionProps) {
   const [authenticatorName, setAuthenticatorName] = useState("");
   const router = useRouter();
   return (
@@ -23,6 +31,7 @@ export function AddPasskeySection() {
       <PasskeyButton
         mode="add-passkey"
         passkeyName={authenticatorName}
+        session={session}
         disabled={false}
         onComplete={() => router.refresh()}
       />

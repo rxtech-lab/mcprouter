@@ -109,7 +109,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
           deleteRegistrationChallenge(sessionId),
           sendVerificationEmail(
             newUser.email!,
-            await getVerificationUrl(newUser.email!)
+            await getVerificationUrl(newUser.email!),
           ),
         ]);
 
@@ -146,7 +146,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
         // Find the authenticator
         const credentialID = Buffer.from(
           parsedCredential.rawId,
-          "base64url"
+          "base64url",
         ).toString("base64url");
 
         const authenticator = await db
@@ -182,7 +182,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
             credentialID: Buffer.from(auth.credentialID, "base64url"),
             credentialPublicKey: Buffer.from(
               auth.credentialPublicKey,
-              "base64url"
+              "base64url",
             ),
             counter: auth.counter,
           },

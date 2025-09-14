@@ -1,8 +1,7 @@
 import { getAuthenticators } from "@/app/auth";
 import { AddPasskeySection } from "@/app/components/dashboard/AddPasskeySection";
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,8 +19,8 @@ export default async function ProtectedPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="flex-1 rounded-xl bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6 shadow-lg border shadow-black/5">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Welcome to your Dashboard!</CardTitle>
@@ -93,28 +92,7 @@ export default async function ProtectedPage() {
                 </div>
               </div>
             )}
-            <AddPasskeySection />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Actions</CardTitle>
-            <CardDescription>
-              Manage your session and account settings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              action={async () => {
-                "use server";
-                await signOut();
-              }}
-            >
-              <Button type="submit" variant="outline">
-                Sign Out
-              </Button>
-            </form>
+            <AddPasskeySection session={session} />
           </CardContent>
         </Card>
       </div>
