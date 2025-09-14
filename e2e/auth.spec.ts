@@ -36,7 +36,7 @@ async function setupWebAuthnVirtualAuthenticator(page: Page) {
         hasUserVerification: true,
         isUserVerified: true,
       },
-    }
+    },
   );
 
   return { cdpSession, authenticatorId };
@@ -83,17 +83,17 @@ test.describe("Authentication Flow", () => {
     await expect(page.getByTestId("auth-page")).toBeVisible();
     await expect(page.getByTestId("auth-title")).toHaveText("Welcome back");
     await expect(page.getByTestId("auth-description")).toHaveText(
-      "Sign in to your account to continue"
+      "Sign in to your account to continue",
     );
 
     // Verify sign up link works
     await page.getByTestId("signup-link").click();
     await expect(page).toHaveURL("/auth/signup");
     await expect(page.getByTestId("auth-title")).toHaveText(
-      "Create your account"
+      "Create your account",
     );
     await expect(page.getByTestId("auth-description")).toHaveText(
-      "Get started by creating a new account"
+      "Get started by creating a new account",
     );
 
     // Verify sign in link works
@@ -140,10 +140,10 @@ test.describe("Authentication Flow", () => {
     // This may take some time as WebAuthn processes the credential
     await expect(page).toHaveURL(/\/auth\/error/, { timeout: 15000 });
     await expect(
-      page.getByTestId("email-not-verified-error").first()
+      page.getByTestId("email-not-verified-error").first(),
     ).toBeVisible();
     await expect(
-      page.getByTestId("email-not-verified-error").first()
+      page.getByTestId("email-not-verified-error").first(),
     ).toContainText("Please verify your email address");
 
     // Note: User creation during WebAuthn flow is tested implicitly by reaching the verification page
@@ -189,7 +189,7 @@ test.describe("Authentication Flow", () => {
     // Should see verification message
     await expect(page).toHaveURL(/\/auth\/error/, { timeout: 15000 });
     await expect(
-      page.getByTestId("email-not-verified-error").first()
+      page.getByTestId("email-not-verified-error").first(),
     ).toBeVisible();
 
     // clear cookies
@@ -205,14 +205,14 @@ test.describe("Authentication Flow", () => {
     // Should be redirected to error page with EmailNotVerified
     await expect(page).toHaveURL(/\/auth\/error/, { timeout: 15000 });
     await expect(
-      page.getByTestId("email-not-verified-error").first()
+      page.getByTestId("email-not-verified-error").first(),
     ).toBeVisible();
 
     // For this simplified test, we'll just verify the flow up to this point
     // The full email verification and subsequent signin test would require more complex setup
     // to properly simulate the WebAuthn credential storage and retrieval
     console.log(
-      "✓ Successfully demonstrated user cannot sign in before email verification"
+      "✓ Successfully demonstrated user cannot sign in before email verification",
     );
   });
 
@@ -225,7 +225,7 @@ test.describe("Authentication Flow", () => {
     await page.getByTestId("signup-link").click();
     await expect(page).toHaveURL("/auth/signup");
     await expect(page.getByTestId("auth-title")).toHaveText(
-      "Create your account"
+      "Create your account",
     );
     await expect(page.getByTestId("email-input")).toBeVisible();
 
@@ -252,7 +252,7 @@ test.describe("Authentication Flow", () => {
     // Should show validation error after blur
     await expect(page.getByTestId("email-input-error")).toBeVisible();
     await expect(page.getByTestId("email-input-error")).toContainText(
-      "Please enter a valid email address"
+      "Please enter a valid email address",
     );
 
     // Passkey button should still be disabled for invalid email
@@ -280,10 +280,10 @@ test.describe("Authentication Flow", () => {
     // Should see email not verified error
     await expect(page).toHaveURL(/\/auth\/error/, { timeout: 15000 });
     await expect(
-      page.getByTestId("email-not-verified-error").first()
+      page.getByTestId("email-not-verified-error").first(),
     ).toBeVisible();
     await expect(
-      page.getByTestId("email-not-verified-error").first()
+      page.getByTestId("email-not-verified-error").first(),
     ).toContainText("Please verify your email address");
 
     // Click resend button
@@ -293,7 +293,7 @@ test.describe("Authentication Flow", () => {
     // Should show success message or confirmation that email was resent
     await expect(page.getByTestId("resend-success-message")).toBeVisible();
     await expect(page.getByTestId("resend-success-message")).toContainText(
-      "Verification email sent successfully"
+      "Verification email sent successfully",
     );
   });
 });

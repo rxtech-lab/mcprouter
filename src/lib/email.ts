@@ -2,15 +2,15 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 import VerificationEmail from "./emails/VerificationEmail";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function sendVerificationEmail(
   email: string,
-  verificationUrl: string
+  verificationUrl: string,
 ) {
-  if (process.env.NODE_ENV === "test") {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  console.log("Current environment:", process.env.NODE_ENV);
+  if (process.env.IS_PLAYWRIGHT_TEST === "true") {
     console.log(
-      `[TEST MODE] Skipping email send to ${email} with URL: ${verificationUrl}`
+      `[TEST MODE] Skipping email send to ${email} with URL: ${verificationUrl}`,
     );
     return { id: "test-email-id" };
   }

@@ -53,11 +53,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "NODE_ENV=test bun run dev",
+    command: "bun run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     env: {
-      NODE_ENV: "test",
+      IS_PLAYWRIGHT_TEST: "true",
     },
   },
 });

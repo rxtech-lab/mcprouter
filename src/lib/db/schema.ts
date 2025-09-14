@@ -81,3 +81,49 @@ export const authenticators = pgTable("Authenticator", {
 export const authenticatorsPK = primaryKey({
   columns: [authenticators.userId, authenticators.credentialID],
 });
+
+// mcp servers
+export const mcpServers = pgTable("McpServer", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  description: text("description"),
+  category: text("category", {
+    enum: [
+      "crypto",
+      "finance",
+      "language",
+      "networking",
+      "security",
+      "storage",
+    ],
+  }),
+  tags: text("tags").array(),
+  image: text("image"),
+  authenticationMethods: text("authenticationMethod", {
+    enum: ["none", "apiKey", "oauth"],
+  })
+    .array()
+    .notNull()
+    .default(["none"]),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+// keys
+export const keys = pgTable("Key", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  value: text("value").notNull(),
+  type: text("type", {
+    enum: ["user", "server"],
+  }).notNull(),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});

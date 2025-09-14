@@ -10,8 +10,8 @@ export function cn(...inputs: ClassValue[]) {
 export async function getVerificationUrl(email: string) {
   const token = generateVerificationToken();
   const expires = generateTokenExpiry();
-  // Store token in Redis
-  if (process.env.NODE_ENV !== "test") {
+  const isPlaywrightTest = process.env.IS_PLAYWRIGHT_TEST === "true";
+  if (!isPlaywrightTest) {
     await createVerificationToken(email, token, expires);
   }
   return `${process.env.NEXTAUTH_URL}/auth/verify?email=${encodeURIComponent(email)}&token=${token}`;

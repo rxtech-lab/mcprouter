@@ -30,7 +30,7 @@ export function ResendVerificationButton({
   const [countdown, setCountdown] = useState(0);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | null>(
-    null
+    null,
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -75,7 +75,7 @@ export function ResendVerificationButton({
     try {
       await resendVerificationEmail();
       setMessage(
-        "Verification email sent successfully! Please check your inbox."
+        "Verification email sent successfully! Please check your inbox.",
       );
       setMessageType("success");
       setCountdown(60);
