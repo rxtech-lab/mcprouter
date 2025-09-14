@@ -116,7 +116,7 @@ export const mcpServers = pgTable("McpServer", {
   /**
    * Version for the MCP server
    */
-  version: text("version").notNull(),
+  version: text("version"),
   description: text("description"),
   /**
    * Github repository for the MCP server.
@@ -173,14 +173,14 @@ export const mcpServers = pgTable("McpServer", {
    */
   tags: text("tags").array(),
   image: jsonb("image").$type<{
-    cover: string;
-    logo: string;
+    cover?: string;
+    logo?: string;
     icon?: string;
   }>(),
   /**
    * Authentication methods for the MCP server
    */
-  authenticationMethods: text("authenticationMethod", {
+  authenticationMethods: text("authenticationMethods", {
     enum: ["none", "apiKey", "oauth"],
   })
     .array()

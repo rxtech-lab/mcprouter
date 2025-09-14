@@ -97,9 +97,10 @@ export function FilterBar({ totalServers }: FilterBarProps) {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             className="pl-10"
+            data-testid="search-input"
           />
         </div>
-        <Button type="submit" variant="outline">
+        <Button type="submit" variant="outline" data-testid="search-button">
           Search
         </Button>
       </form>
@@ -113,7 +114,7 @@ export function FilterBar({ totalServers }: FilterBarProps) {
             value={currentFilters.location}
             onValueChange={(value) => handleFilterChange("location", value)}
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32" data-testid="location-filter">
               <SelectValue placeholder="Any" />
             </SelectTrigger>
             <SelectContent>
@@ -141,7 +142,7 @@ export function FilterBar({ totalServers }: FilterBarProps) {
             value={currentFilters.auth}
             onValueChange={(value) => handleFilterChange("auth", value)}
           >
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-36" data-testid="auth-filter">
               <SelectValue placeholder="Any" />
             </SelectTrigger>
             <SelectContent>
@@ -169,7 +170,7 @@ export function FilterBar({ totalServers }: FilterBarProps) {
             value={currentFilters.sort}
             onValueChange={(value) => handleFilterChange("sort", value)}
           >
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-36" data-testid="sort-filter">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -197,7 +198,12 @@ export function FilterBar({ totalServers }: FilterBarProps) {
 
         {/* Clear Filters */}
         {hasActiveFilters && (
-          <Button variant="outline" size="sm" onClick={clearFilters}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearFilters}
+            data-testid="clear-filters-button"
+          >
             <XIcon className="h-4 w-4 mr-2" />
             Clear Filters
           </Button>

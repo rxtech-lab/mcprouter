@@ -122,6 +122,7 @@ export function CreateKeyForm({
                     <FormControl>
                       <Input
                         placeholder="Enter a descriptive name for this key"
+                        data-testid="key-name-input"
                         {...field}
                       />
                     </FormControl>
@@ -131,10 +132,19 @@ export function CreateKeyForm({
               />
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleClose}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  data-testid="cancel-key-button"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isPending}>
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  data-testid="create-key-submit"
+                >
                   {isPending ? "Creating..." : "Create Key"}
                 </Button>
               </DialogFooter>
@@ -143,7 +153,10 @@ export function CreateKeyForm({
         ) : (
           <div className="space-y-4">
             <div className="rounded-md bg-muted p-4">
-              <p className="text-sm font-medium mb-2">
+              <p
+                className="text-sm font-medium mb-2"
+                data-testid="key-created-success-message"
+              >
                 Key created successfully!
               </p>
               <p className="text-sm text-muted-foreground mb-4">
@@ -160,6 +173,7 @@ export function CreateKeyForm({
                   variant="outline"
                   onClick={copyToClipboard}
                   className="shrink-0"
+                  data-testid="copy-key-button"
                 >
                   {copied ? (
                     <CheckIcon className="h-4 w-4" />
@@ -171,7 +185,12 @@ export function CreateKeyForm({
             </div>
 
             <DialogFooter>
-              <Button onClick={handleClose}>Close</Button>
+              <Button
+                onClick={handleClose}
+                data-testid="close-key-dialog-button"
+              >
+                Close
+              </Button>
             </DialogFooter>
           </div>
         )}

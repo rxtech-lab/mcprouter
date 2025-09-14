@@ -30,7 +30,7 @@ interface McpServer {
   id: string;
   name: string;
   url?: string | null;
-  version: string;
+  version: string | null;
   description?: string | null;
   github?: string | null;
   category?: string | null;
@@ -175,6 +175,7 @@ export function McpServersPageClient({
               key={server.id}
               server={server}
               onEdit={handleEditServer}
+              data-testid={`server-card-${server.id}`}
             />
           ))}
         </div>
@@ -186,6 +187,7 @@ export function McpServersPageClient({
               variant="outline"
               onClick={() => handlePagination("prev")}
               disabled={!searchParams.get("cursor")}
+              data-testid="pagination-prev"
             >
               <ChevronLeftIcon className="h-4 w-4 mr-2" />
               Previous
@@ -200,6 +202,7 @@ export function McpServersPageClient({
               variant="outline"
               onClick={() => handlePagination("next")}
               disabled={!currentServers.hasMore}
+              data-testid="pagination-next"
             >
               Next
               <ChevronRightIcon className="h-4 w-4 ml-2" />
@@ -220,7 +223,7 @@ export function McpServersPageClient({
             Manage your Model Context Protocol servers
           </p>
         </div>
-        <Button onClick={handleCreateServer}>
+        <Button onClick={handleCreateServer} data-testid="create-server-button">
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Server
         </Button>
@@ -230,7 +233,7 @@ export function McpServersPageClient({
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">Category:</span>
         <Select value={activeCategory} onValueChange={handleCategoryChange}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-48" data-testid="category-select">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

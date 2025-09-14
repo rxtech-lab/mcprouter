@@ -1,20 +1,14 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { auth } from "@/auth";
-import { signOut } from "@/auth";
+import { auth, signOut } from "@/auth";
 import {
   createMcpServer,
   deleteMcpServer,
   updateMcpServer,
   type McpServerCategory,
-  type McpAuthenticationMethod,
-  type McpServerLocationType,
-  type SocialLinks,
-  type DownloadLink,
-  type ImageStructure,
 } from "@/lib/db/queries/mcp_queries";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 export async function handleSignOut() {
   await signOut();
@@ -46,21 +40,34 @@ const downloadLinkSchema = z.object({
 
 const imageStructureSchema = z
   .object({
-    cover: z.string().url("Must be a valid URL"),
-    logo: z.string().url("Must be a valid URL"),
+    cover: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+    logo: z.string().url("Must be a valid URL").optional().or(z.literal("")),
     icon: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   })
   .optional();
 
 const createMcpServerSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
-  url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  version: z.string().min(1, "Version is required"),
+  url: z
+    .string()
+    .url("Must be a valid URL")
+    .optional()
+    .or(z.literal(""))
+    .or(z.null())
+    .transform((val) => (val === null ? "" : val)),
+  version: z
+    .string()
+    .min(1, "Version is required")
+    .optional()
+    .or(z.null())
+    .transform((val) => (val === null ? undefined : val)),
   github: z
     .string()
     .url("Must be a valid GitHub URL")
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .or(z.null())
+    .transform((val) => (val === null ? "" : val)),
   socialLinks: socialLinksSchema,
   downloadLinks: z.array(downloadLinkSchema).optional(),
   locationType: z.array(z.enum(["remote", "local"])).optional(),

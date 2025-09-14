@@ -74,7 +74,9 @@ export function CategorySelect({ control }: CategorySelectProps) {
       name="category"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Category</FormLabel>
+          <FormLabel>
+            Category <span className="text-destructive">*</span>
+          </FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
               <SelectTrigger>

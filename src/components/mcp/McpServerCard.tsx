@@ -51,7 +51,7 @@ interface McpServerCardProps {
     id: string;
     name: string;
     url?: string | null;
-    version: string;
+    version: string | null;
     description?: string | null;
     github?: string | null;
     category?: string | null;
@@ -63,6 +63,7 @@ interface McpServerCardProps {
     updatedAt: Date;
   };
   onEdit: (server: any) => void;
+  "data-testid"?: string;
 }
 
 const categoryIcons: Record<string, any> = {
@@ -86,7 +87,11 @@ const categoryColors: Record<string, string> = {
   storage: "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300",
 };
 
-export function McpServerCard({ server, onEdit }: McpServerCardProps) {
+export function McpServerCard({
+  server,
+  onEdit,
+  "data-testid": dataTestId,
+}: McpServerCardProps) {
   const [isDeleting, startDeletingTransition] = useTransition();
   const [isTogglingPublic, startToggleTransition] = useTransition();
 
@@ -128,7 +133,10 @@ export function McpServerCard({ server, onEdit }: McpServerCardProps) {
     : GlobeIcon;
 
   return (
-    <Card className="group hover:shadow-md transition-shadow">
+    <Card
+      className="group hover:shadow-md transition-shadow"
+      data-testid={dataTestId}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -151,18 +159,23 @@ export function McpServerCard({ server, onEdit }: McpServerCardProps) {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                data-testid="server-card-menu"
               >
                 <MoreVerticalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(server)}>
+              <DropdownMenuItem
+                onClick={() => onEdit(server)}
+                data-testid="edit-server-action"
+              >
                 <EditIcon className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleTogglePublic}
                 disabled={isTogglingPublic}
+                data-testid="toggle-public-action"
               >
                 {server.isPublic ? (
                   <>
@@ -181,6 +194,7 @@ export function McpServerCard({ server, onEdit }: McpServerCardProps) {
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="text-destructive focus:text-destructive"
+                data-testid="delete-server-action"
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Delete

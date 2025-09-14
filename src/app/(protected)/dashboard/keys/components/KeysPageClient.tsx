@@ -121,10 +121,17 @@ export function KeysPageClient({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <KeyIcon className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-center">
+            <p
+              className="text-muted-foreground text-center"
+              data-testid={`no-${keyType}-keys-message`}
+            >
               No {keyType === "mcp" ? "MCP" : "server"} keys created yet.
             </p>
-            <Button onClick={() => handleCreateKey(keyType)} className="mt-4">
+            <Button
+              onClick={() => handleCreateKey(keyType)}
+              className="mt-4"
+              data-testid="create-first-key-button"
+            >
               <PlusIcon className="h-4 w-4 mr-2" />
               Create Your First Key
             </Button>
@@ -142,7 +149,12 @@ export function KeysPageClient({
                 <div className="flex items-center gap-3">
                   <KeyIcon className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">{key.name}</p>
+                    <p
+                      className="font-medium"
+                      data-testid={`key-name-${key.id}`}
+                    >
+                      {key.name}
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       Created {new Date(key.createdAt).toLocaleDateString()}
                     </p>
@@ -153,6 +165,7 @@ export function KeysPageClient({
                   size="sm"
                   onClick={() => handleDeleteKey(key.id)}
                   className="text-destructive hover:text-destructive"
+                  data-testid={`delete-key-${key.id}`}
                 >
                   <TrashIcon className="h-4 w-4" />
                 </Button>
@@ -173,7 +186,10 @@ export function KeysPageClient({
               Previous
             </Button>
 
-            <span className="text-sm text-muted-foreground">
+            <span
+              className="text-sm text-muted-foreground"
+              data-testid="keys-count"
+            >
               {keys.length} key{keys.length !== 1 ? "s" : ""} shown
             </span>
 
@@ -205,10 +221,17 @@ export function KeysPageClient({
       <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-4">
         <div className="flex items-center justify-between">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="mcp">MCP Keys</TabsTrigger>
-            <TabsTrigger value="server">Server Keys</TabsTrigger>
+            <TabsTrigger value="mcp" data-testid="tab-mcp">
+              MCP Keys
+            </TabsTrigger>
+            <TabsTrigger value="server" data-testid="tab-server">
+              Server Keys
+            </TabsTrigger>
           </TabsList>
-          <Button onClick={() => handleCreateKey(activeTab)}>
+          <Button
+            onClick={() => handleCreateKey(activeTab)}
+            data-testid="create-key-button"
+          >
             <PlusIcon className="h-4 w-4 mr-2" />
             Create Key
           </Button>

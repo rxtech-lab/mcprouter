@@ -18,7 +18,7 @@ import {
   getRegistrationChallenge,
 } from "./lib/redis/challenge-queries";
 import { sendVerificationEmail } from "./lib/email";
-import { getVerificationUrl } from "./lib/utils";
+import { getVerificationUrl } from "./lib/server-utils";
 
 export const { handlers, signIn, auth, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {

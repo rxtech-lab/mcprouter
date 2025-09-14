@@ -22,8 +22,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { CheckIcon, ChevronRightIcon } from "lucide-react";
 import { CategorySelect } from "./CategorySelect";
@@ -38,22 +39,32 @@ import {
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
-  url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  url: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || val === "" || z.string().url().safeParse(val).success,
+      {
+        message: "Must be a valid URL",
+      },
+    ),
   github: z
     .string()
-    .url("Must be a valid GitHub URL")
     .optional()
-    .or(z.literal("")),
-  category: z
-    .enum([
-      "crypto",
-      "finance",
-      "language",
-      "networking",
-      "security",
-      "storage",
-    ])
-    .optional(),
+    .refine(
+      (val) => !val || val === "" || z.string().url().safeParse(val).success,
+      {
+        message: "Must be a valid GitHub URL",
+      },
+    ),
+  category: z.enum([
+    "crypto",
+    "finance",
+    "language",
+    "networking",
+    "security",
+    "storage",
+  ]),
   socialLinks: z
     .object({
       website: z.string().optional(),
@@ -83,9 +94,36 @@ const formSchema = z.object({
   tags: z.array(z.string()).optional(),
   image: z
     .object({
-      cover: z.string().url("Must be a valid URL"),
-      logo: z.string().url("Must be a valid URL"),
-      icon: z.string().optional(),
+      cover: z
+        .string()
+        .optional()
+        .refine(
+          (val) =>
+            !val || val === "" || z.string().url().safeParse(val).success,
+          {
+            message: "Must be a valid URL",
+          },
+        ),
+      logo: z
+        .string()
+        .optional()
+        .refine(
+          (val) =>
+            !val || val === "" || z.string().url().safeParse(val).success,
+          {
+            message: "Must be a valid URL",
+          },
+        ),
+      icon: z
+        .string()
+        .optional()
+        .refine(
+          (val) =>
+            !val || val === "" || z.string().url().safeParse(val).success,
+          {
+            message: "Must be a valid URL",
+          },
+        ),
     })
     .optional(),
   authenticationMethods: z.array(z.enum(["none", "apiKey", "oauth"])),
@@ -97,6 +135,7 @@ type FormSchema = z.infer<typeof formSchema>;
 interface CreateMcpServerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmitSuccess?: (data: any) => void;
   editingServer?: {
     id: string;
     name: string;
@@ -139,66 +178,82 @@ const steps = [
 export function CreateMcpServerForm({
   open,
   onOpenChange,
+  onSubmitSuccess,
   editingServer,
 }: CreateMcpServerFormProps) {
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const getDefaultValues = useCallback(
+    (server?: typeof editingServer): FormSchema => {
+      return server
+        ? {
+            name: server.name,
+            url: server.url || "",
+            github: server.github || "",
+            category: server.category as any,
+            socialLinks: server.socialLinks || {},
+            downloadLinks: server.downloadLinks || [],
+            locationType: (server.locationType as any) || [],
+            tags: server.tags || [],
+            image: server.image || { cover: "", logo: "", icon: "" },
+            authenticationMethods: (server.authenticationMethods as any) || [
+              "none",
+            ],
+            isPublic: server.isPublic,
+          }
+        : {
+            name: "",
+            url: "",
+            github: "",
+            category: "crypto",
+            socialLinks: {},
+            downloadLinks: [],
+            locationType: [],
+            tags: [],
+            image: { cover: "", logo: "", icon: "" },
+            authenticationMethods: ["none"],
+            isPublic: true,
+          };
+    },
+    [],
+  );
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: editingServer
-      ? {
-          name: editingServer.name,
-          url: editingServer.url || "",
-          github: editingServer.github || "",
-          category: editingServer.category as any,
-          socialLinks: editingServer.socialLinks || {},
-          downloadLinks: editingServer.downloadLinks || [],
-          locationType: (editingServer.locationType as any) || [],
-          tags: editingServer.tags || [],
-          image: editingServer.image || { cover: "", logo: "", icon: "" },
-          authenticationMethods:
-            (editingServer.authenticationMethods as any) || ["none"],
-          isPublic: editingServer.isPublic,
-        }
-      : {
-          name: "",
-          url: "",
-          github: "",
-          category: undefined,
-          socialLinks: {},
-          downloadLinks: [],
-          locationType: [],
-          tags: [],
-          image: { cover: "", logo: "", icon: "" },
-          authenticationMethods: ["none"],
-          isPublic: true,
-        },
+    defaultValues: getDefaultValues(editingServer),
   });
+
+  // Reset form when editingServer changes
+  useEffect(() => {
+    if (open) {
+      const newDefaultValues = getDefaultValues(editingServer);
+      form.reset(newDefaultValues);
+      setFormError(null);
+      setCurrentStep(0);
+      setCompletedSteps(new Set());
+    }
+  }, [editingServer, open, form, getDefaultValues]);
 
   // Validate current step
   const validateStep = async (stepIndex: number) => {
     let fieldsToValidate: (keyof FormSchema)[] = [];
 
     switch (stepIndex) {
-      case 0: // Basic Info - Only require name, others are optional
-        fieldsToValidate = ["name"];
+      case 0: // Basic Info - Validate name, category, and any URLs that are filled
+        fieldsToValidate = ["name", "category", "url", "github"];
         break;
-      case 1: // Links & Social - All optional, so always valid
-        fieldsToValidate = [];
+      case 1: // Links & Social - Validate any URLs that are filled
+        fieldsToValidate = ["socialLinks", "downloadLinks"];
         break;
-      case 2: // Configuration - Require authentication methods and public setting
+      case 2: // Configuration - Validate required fields
         fieldsToValidate = ["authenticationMethods", "isPublic"];
         break;
-      case 3: // Media & Images - All optional
-        fieldsToValidate = [];
+      case 3: // Media & Images - Validate any image URLs that are filled
+        fieldsToValidate = ["image"];
         break;
-    }
-
-    // If no fields to validate, consider step valid
-    if (fieldsToValidate.length === 0) {
-      return true;
     }
 
     const result = await form.trigger(fieldsToValidate);
@@ -206,20 +261,35 @@ export function CreateMcpServerForm({
   };
 
   const handleNext = async () => {
+    console.log("Validating step:", currentStep);
+    console.log("Form values:", form.getValues());
+
     const isValid = await validateStep(currentStep);
+    console.log("Step validation result:", isValid);
+
     if (isValid) {
       setCompletedSteps((prev) => new Set([...prev, currentStep]));
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       }
     } else {
-      // Validation failed - scroll to first error
+      console.log("Form errors:", form.formState.errors);
+      // Validation failed - scroll to first error and show better feedback
       setTimeout(() => {
-        const firstError = document.querySelector(".text-destructive");
+        const firstError = document.querySelector(
+          "[data-testid$='-input'][aria-invalid='true'], .text-destructive",
+        );
         if (firstError) {
           firstError.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
+
+      // Show a more helpful error message
+      const errors = form.formState.errors;
+      const errorFields = Object.keys(errors);
+      if (errorFields.length > 0) {
+        console.log(`Validation failed for: ${errorFields.join(", ")}`);
+      }
     }
   };
 
@@ -242,12 +312,14 @@ export function CreateMcpServerForm({
     startTransition(async () => {
       const formData = new FormData();
 
-      // Add basic fields
-      formData.append("name", values.name);
-      if (values.url) formData.append("url", values.url);
-      if (values.github) formData.append("github", values.github);
+      // Add basic fields with null safety
+      formData.append("name", values.name || "");
+      if (values.url && values.url.trim())
+        formData.append("url", values.url.trim());
+      if (values.github && values.github.trim())
+        formData.append("github", values.github.trim());
       if (values.category) formData.append("category", values.category);
-      formData.append("isPublic", values.isPublic.toString());
+      formData.append("isPublic", values.isPublic ? "true" : "false");
 
       // Add JSON fields
       if (values.socialLinks)
@@ -270,14 +342,37 @@ export function CreateMcpServerForm({
       const action = editingServer
         ? updateMcpServerAction
         : createMcpServerAction;
-      const result = await action(formData);
-
-      if (result.success) {
+      // For testing, use callback instead of actual server action
+      if (onSubmitSuccess) {
+        onSubmitSuccess(Object.fromEntries(formData.entries()));
         form.reset();
         onOpenChange(false);
       } else {
-        console.error(result.error);
-        // Handle error - you might want to add toast notifications here
+        const result = await action(formData);
+
+        if (result.success) {
+          form.reset();
+          setFormError(null);
+          onOpenChange(false);
+        } else {
+          console.error("Form submission failed:", result.error);
+          // Handle error - show user-friendly error messages
+          if (
+            typeof result.error === "string" &&
+            result.error.includes("Invalid input")
+          ) {
+            // Parse server validation errors if possible
+            setFormError(
+              `Form validation failed: ${result.error}. Please check all required fields marked with * and correct any errors.`,
+            );
+            toast.error(
+              "Form validation failed. Please check the errors below.",
+            );
+          } else {
+            setFormError("Failed to save server. Please try again.");
+            toast.error("Failed to save server. Please try again.");
+          }
+        }
       }
     });
   };
@@ -286,6 +381,7 @@ export function CreateMcpServerForm({
     form.reset();
     setCurrentStep(0);
     setCompletedSteps(new Set());
+    setFormError(null);
     onOpenChange(false);
   };
 
@@ -312,6 +408,7 @@ export function CreateMcpServerForm({
               <button
                 key={step.id}
                 type="button"
+                data-testid={`step-button-${stepIndex}`}
                 onClick={() => handleStepClick(stepIndex)}
                 disabled={
                   !completedSteps.has(stepIndex) && stepIndex !== currentStep
@@ -353,17 +450,30 @@ export function CreateMcpServerForm({
         {/* Scrollable Content Area */}
         <Form {...form}>
           <div className="flex-1 overflow-y-auto px-6 py-6">
+            {/* Form Error Display */}
+            {formError && (
+              <div className="mb-6 p-4 border border-destructive/20 bg-destructive/10 text-destructive rounded-lg">
+                <p className="text-sm font-medium">{formError}</p>
+              </div>
+            )}
+
             {/* Step Content */}
             {currentStep === 0 && (
-              <div className="space-y-4">
+              <div className="space-y-4" data-testid="step-0-content">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Server Name *</FormLabel>
+                      <FormLabel>
+                        Server Name <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="My Awesome MCP Server" {...field} />
+                        <Input
+                          placeholder="My Awesome MCP Server"
+                          data-testid="name-input"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -379,6 +489,7 @@ export function CreateMcpServerForm({
                       <FormControl>
                         <Input
                           placeholder="https://api.example.com/mcp"
+                          data-testid="url-input"
                           {...field}
                         />
                       </FormControl>
@@ -400,6 +511,7 @@ export function CreateMcpServerForm({
                       <FormControl>
                         <Input
                           placeholder="https://github.com/username/repo"
+                          data-testid="github-input"
                           {...field}
                         />
                       </FormControl>
@@ -417,7 +529,7 @@ export function CreateMcpServerForm({
             )}
 
             {currentStep === 1 && (
-              <div className="space-y-6">
+              <div className="space-y-6" data-testid="step-1-content">
                 <SocialLinksForm
                   control={form.control}
                   setValue={form.setValue}
@@ -431,7 +543,7 @@ export function CreateMcpServerForm({
             )}
 
             {currentStep === 2 && (
-              <div className="space-y-6">
+              <div className="space-y-6" data-testid="step-2-content">
                 <div className="space-y-4">
                   <div>
                     <Label className="text-base font-medium">
@@ -449,6 +561,7 @@ export function CreateMcpServerForm({
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id="remote"
+                                data-testid="remote-checkbox"
                                 checked={field.value?.includes("remote")}
                                 onCheckedChange={(checked) => {
                                   const current = field.value || [];
@@ -469,6 +582,7 @@ export function CreateMcpServerForm({
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id="local"
+                                data-testid="local-checkbox"
                                 checked={field.value?.includes("local")}
                                 onCheckedChange={(checked) => {
                                   const current = field.value || [];
@@ -496,7 +610,8 @@ export function CreateMcpServerForm({
 
                   <div>
                     <Label className="text-base font-medium">
-                      Authentication Methods
+                      Authentication Methods{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <p className="text-sm text-muted-foreground mb-3">
                       What authentication methods does this server support?
@@ -510,6 +625,7 @@ export function CreateMcpServerForm({
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id="none"
+                                data-testid="auth-none-checkbox"
                                 checked={field.value?.includes("none")}
                                 onCheckedChange={(checked) => {
                                   const current = field.value || [];
@@ -530,6 +646,7 @@ export function CreateMcpServerForm({
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id="apiKey"
+                                data-testid="auth-api-key-checkbox"
                                 checked={field.value?.includes("apiKey")}
                                 onCheckedChange={(checked) => {
                                   const current = field.value || [];
@@ -550,6 +667,7 @@ export function CreateMcpServerForm({
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id="oauth"
+                                data-testid="auth-oauth-checkbox"
                                 checked={field.value?.includes("oauth")}
                                 onCheckedChange={(checked) => {
                                   const current = field.value || [];
@@ -598,6 +716,7 @@ export function CreateMcpServerForm({
                         </div>
                         <FormControl>
                           <Checkbox
+                            data-testid="public-checkbox"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
@@ -610,7 +729,7 @@ export function CreateMcpServerForm({
             )}
 
             {currentStep === 3 && (
-              <div className="space-y-4">
+              <div className="space-y-4" data-testid="step-3-content">
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
@@ -621,6 +740,7 @@ export function CreateMcpServerForm({
                         <FormControl>
                           <Input
                             placeholder="https://example.com/cover.jpg"
+                            data-testid="cover-input"
                             {...field}
                           />
                         </FormControl>
@@ -642,6 +762,7 @@ export function CreateMcpServerForm({
                         <FormControl>
                           <Input
                             placeholder="https://example.com/logo.png"
+                            data-testid="logo-input"
                             {...field}
                           />
                         </FormControl>
@@ -662,6 +783,7 @@ export function CreateMcpServerForm({
                         <FormControl>
                           <Input
                             placeholder="https://example.com/icon.ico"
+                            data-testid="icon-input"
                             {...field}
                           />
                         </FormControl>
@@ -679,7 +801,12 @@ export function CreateMcpServerForm({
 
           {/* Fixed Navigation Controls */}
           <div className="flex items-center justify-between px-6 py-4 border-t bg-background">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button
+              type="button"
+              variant="outline"
+              data-testid="cancel-button"
+              onClick={handleClose}
+            >
               Cancel
             </Button>
 
@@ -687,6 +814,7 @@ export function CreateMcpServerForm({
               <Button
                 type="button"
                 variant="outline"
+                data-testid="previous-button"
                 onClick={handlePrevious}
                 disabled={currentStep === 0}
               >
@@ -694,7 +822,11 @@ export function CreateMcpServerForm({
               </Button>
 
               {currentStep < steps.length - 1 ? (
-                <Button type="button" onClick={handleNext}>
+                <Button
+                  type="button"
+                  data-testid="next-button"
+                  onClick={handleNext}
+                >
                   Next
                   <ChevronRightIcon className="h-4 w-4 ml-2" />
                 </Button>
@@ -702,6 +834,7 @@ export function CreateMcpServerForm({
                 <form onSubmit={form.handleSubmit(handleSubmit)}>
                   <Button
                     type="submit"
+                    data-testid="submit-button"
                     disabled={isPending || !allStepsCompleted}
                   >
                     {isPending

@@ -55,8 +55,8 @@ export interface DownloadLink {
  * Image structure matching the database schema
  */
 export interface ImageStructure {
-  cover: string;
-  logo: string;
+  cover?: string;
+  logo?: string;
   icon?: string;
 }
 
@@ -81,7 +81,7 @@ export interface CreateMcpServerData {
   /** Remote url for the MCP server */
   url?: string;
   /** Version for the MCP server */
-  version: string;
+  version?: string;
   /** Optional description of the MCP server */
   description?: string;
   /** Github repository for the MCP server */
@@ -177,7 +177,7 @@ export interface PaginatedMcpServers {
     id: string;
     name: string;
     url: string | null;
-    version: string;
+    version: string | null;
     description: string | null;
     github: string | null;
     socialLinks: SocialLinks | null;
@@ -212,7 +212,7 @@ export async function createMcpServer(data: CreateMcpServerData) {
       id,
       name: data.name,
       url: data.url || null,
-      version: data.version,
+      version: data.version || null,
       description: data.description || null,
       github: data.github || null,
       socialLinks: data.socialLinks || null,
@@ -524,7 +524,7 @@ export interface McpServerWithChangelogs {
   id: string;
   name: string;
   url: string | null;
-  version: string;
+  version: string | null;
   description: string | null;
   github: string | null;
   socialLinks: SocialLinks | null;
