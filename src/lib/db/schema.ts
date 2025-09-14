@@ -83,7 +83,7 @@ export const authenticatorsPK = primaryKey({
 });
 
 // mcp servers
-const mcpServers = pgTable("McpServer", {
+export const mcpServers = pgTable("McpServer", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   url: text("url").notNull(),
@@ -100,6 +100,12 @@ const mcpServers = pgTable("McpServer", {
   }),
   tags: text("tags").array(),
   image: text("image"),
+  authenticationMethods: text("authenticationMethod", {
+    enum: ["none", "apiKey", "oauth"],
+  })
+    .array()
+    .notNull()
+    .default(["none"]),
   createdBy: text("createdBy")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -108,7 +114,7 @@ const mcpServers = pgTable("McpServer", {
 });
 
 // keys
-const keys = pgTable("Key", {
+export const keys = pgTable("Key", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   value: text("value").notNull(),

@@ -10,7 +10,7 @@ const databaseUrl =
 
 if (!databaseUrl) {
   throw new Error(
-    `${process.env.IS_PLAYWRIGHT_TEST === "true" ? "TEST_DATABASE_URL" : "DATABASE_URL"} is not set`
+    `${process.env.IS_PLAYWRIGHT_TEST === "true" ? "TEST_DATABASE_URL" : "DATABASE_URL"} is not set`,
   );
 }
 
