@@ -17,6 +17,8 @@ import {
   getAuthenticationChallenge,
   getRegistrationChallenge,
 } from "./lib/redis/challenge-queries";
+import { sendVerificationEmail } from "./lib/email";
+import { getVerificationUrl } from "./lib/utils";
 
 export const { handlers, signIn, auth, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -105,7 +107,10 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
         // Clean up challenge
         await Promise.allSettled([
           deleteRegistrationChallenge(sessionId),
-          resendVerificationEmail(newUser.email!),
+          sendVerificationEmail(
+            newUser.email!,
+            await getVerificationUrl(newUser.email!)
+          ),
         ]);
 
         return {
@@ -114,6 +119,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
           name: newUser.name,
           emailVerified: newUser.emailVerified,
           role: newUser.role || "user",
+          firstLogin: true,
         };
       },
     }),
@@ -140,7 +146,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
         // Find the authenticator
         const credentialID = Buffer.from(
           parsedCredential.rawId,
-          "base64url",
+          "base64url"
         ).toString("base64url");
 
         const authenticator = await db
@@ -176,7 +182,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
             credentialID: Buffer.from(auth.credentialID, "base64url"),
             credentialPublicKey: Buffer.from(
               auth.credentialPublicKey,
-              "base64url",
+              "base64url"
             ),
             counter: auth.counter,
           },
@@ -209,8 +215,10 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      console.log("signIn", user, account);
       // Check email verification for existing users
+      if ("firstLogin" in user && user.firstLogin) {
+        return true;
+      }
       if (user?.email) {
         const existingUser = await getUserByEmail(user.email);
         if (existingUser && !existingUser.emailVerified) {

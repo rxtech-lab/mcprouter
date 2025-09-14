@@ -5,7 +5,7 @@
   "packageManager": "bun@1",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "bun run db:migrate && next build --turbopack",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",

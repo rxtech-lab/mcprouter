@@ -30,7 +30,7 @@ export function ResendVerificationButton({
   const [countdown, setCountdown] = useState(0);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | null>(
-    null,
+    null
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -73,9 +73,9 @@ export function ResendVerificationButton({
     onErrorStateChange?.(false);
 
     try {
-      await resendVerificationEmail(email);
+      await resendVerificationEmail();
       setMessage(
-        "Verification email sent successfully! Please check your inbox.",
+        "Verification email sent successfully! Please check your inbox."
       );
       setMessageType("success");
       setCountdown(60);
@@ -107,6 +107,11 @@ export function ResendVerificationButton({
         <Alert variant={messageType === "error" ? "destructive" : "default"}>
           <AlertDescription
             className={messageType === "success" ? "text-green-700" : ""}
+            data-testid={
+              messageType === "success"
+                ? "resend-success-message"
+                : "resend-error-message"
+            }
           >
             <div className="flex items-start gap-2">
               {messageType === "success" ? (
