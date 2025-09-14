@@ -19,6 +19,7 @@ import {
 } from "@/lib/redis/verification-queries";
 import { sendVerificationEmail } from "@/lib/email";
 import { config } from "@/config/config";
+import { getVerificationUrl } from "@/lib/utils";
 
 export async function signInWithEmail(email: string) {
   try {
@@ -62,7 +63,7 @@ export async function signUpWithEmail(email: string) {
 
     if (existingUser?.emailVerified) {
       throw new Error(
-        "An account with this email already exists. Please sign in instead.",
+        "An account with this email already exists. Please sign in instead."
       );
     }
 
@@ -148,12 +149,13 @@ export async function verifyEmailToken(token: string) {
   }
 }
 
-export async function resendVerificationEmail(email: string) {
+export async function resendVerificationEmail() {
   try {
     const session = await auth();
     if (!session?.user?.email) {
       throw new Error("User does not have an email");
     }
+    const email = session.user.email;
     const user = await getUserByEmail(session?.user?.email!);
 
     if (!user) {
@@ -172,10 +174,10 @@ export async function resendVerificationEmail(email: string) {
 
       if (timeSinceLastEmail < cooldownMs) {
         const remainingSeconds = Math.ceil(
-          (cooldownMs - timeSinceLastEmail) / 1000,
+          (cooldownMs - timeSinceLastEmail) / 1000
         );
         throw new Error(
-          `Please wait ${remainingSeconds} seconds before requesting another email`,
+          `Please wait ${remainingSeconds} seconds before requesting another email`
         );
       }
     }
@@ -186,16 +188,7 @@ export async function resendVerificationEmail(email: string) {
       .set({ lastVerificationEmailSent: new Date() })
       .where(eq(users.email, email));
 
-    // Generate new verification token
-    const token = generateVerificationToken();
-    const expires = generateTokenExpiry();
-
-    // Store token in Redis
-    await createVerificationToken(email, token, expires);
-
-    // Create verification URL
-    const verificationUrl = `${process.env.AUTH_URL}/auth/verify?email=${encodeURIComponent(email)}&token=${token}`;
-
+    const verificationUrl = await getVerificationUrl(email);
     // Send verification email
     await sendVerificationEmail(email, verificationUrl);
 
