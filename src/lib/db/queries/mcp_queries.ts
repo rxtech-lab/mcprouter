@@ -39,6 +39,8 @@ export interface CreateMcpServerData {
   authenticationMethods?: McpAuthenticationMethod[];
   /** The ID of the user creating the MCP server */
   createdBy: string;
+  /** Whether the MCP server is public */
+  isPublic: boolean;
 }
 
 /**
@@ -59,6 +61,8 @@ export interface UpdateMcpServerData {
   image?: string;
   /** Updated authentication methods for the MCP server */
   authenticationMethods?: McpAuthenticationMethod[];
+  /** Updated whether the MCP server is public */
+  isPublic?: boolean;
 }
 
 /**
@@ -135,6 +139,7 @@ export async function createMcpServer(data: CreateMcpServerData) {
       image: data.image || null,
       authenticationMethods: data.authenticationMethods || ["none"],
       createdBy: data.createdBy,
+      isPublic: data.isPublic || true,
     })
     .returning();
 
@@ -174,6 +179,7 @@ export async function updateMcpServer(
     .set({
       ...data,
       updatedAt: new Date(),
+      isPublic: data.isPublic || true,
     })
     .where(and(eq(mcpServers.id, id), eq(mcpServers.createdBy, userId)))
     .returning();

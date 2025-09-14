@@ -14,5 +14,5 @@ export async function getVerificationUrl(email: string) {
   if (!isPlaywrightTest) {
     await createVerificationToken(email, token, expires);
   }
-  return `${process.env.NEXTAUTH_URL}/auth/verify?email=${encodeURIComponent(email)}&token=${token}`;
+  return `${process.env.AUTH_URL}/auth/verify?email=${encodeURIComponent(email)}&token=${token}`;
 }

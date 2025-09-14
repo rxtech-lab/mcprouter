@@ -106,6 +106,7 @@ export const mcpServers = pgTable("McpServer", {
     .array()
     .notNull()
     .default(["none"]),
+  isPublic: boolean("isPublic").notNull().default(true),
   createdBy: text("createdBy")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
