@@ -39,12 +39,12 @@ interface AppSidebarProps {
 // Menu items.
 const items = [
   {
-    title: "Servers",
+    title: "MCP Servers",
     url: "/dashboard",
     icon: Server,
   },
   {
-    title: "Keys",
+    title: "API Keys",
     url: "/dashboard/keys",
     icon: Key,
   },

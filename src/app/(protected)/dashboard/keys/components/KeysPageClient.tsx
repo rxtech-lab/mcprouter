@@ -79,7 +79,7 @@ export function KeysPageClient({
   const handleDeleteKey = async (keyId: string) => {
     if (
       !confirm(
-        "Are you sure you want to delete this key? This action cannot be undone."
+        "Are you sure you want to delete this key? This action cannot be undone.",
       )
     ) {
       return;
@@ -114,7 +114,7 @@ export function KeysPageClient({
   const renderKeyList = (
     keys: Key[],
     keyType: "mcp" | "server",
-    pagination: PaginatedKeys
+    pagination: PaginatedKeys,
   ) => {
     if (keys.length === 0) {
       return (
@@ -241,7 +241,7 @@ export function KeysPageClient({
               {renderKeyList(
                 initialServerKeys.data,
                 "server",
-                initialServerKeys
+                initialServerKeys,
               )}
             </CardContent>
           </Card>
