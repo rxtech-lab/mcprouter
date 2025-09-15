@@ -9,7 +9,7 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { resendVerificationEmail } from "./app/auth";
 import { accounts, authenticators, db, users } from "./lib/db";
-import { getUserByEmail } from "./lib/db/queries/user_queries";
+import { getUserByEmail, getUserById } from "./lib/db/queries/user_queries";
 import { AuthenticatorNotFoundError } from "./lib/errors/auth.error";
 import {
   deleteAuthenticationChallenge,
@@ -18,7 +18,7 @@ import {
   getRegistrationChallenge,
 } from "./lib/redis/challenge-queries";
 import { sendVerificationEmail } from "./lib/email";
-import { getVerificationUrl } from "./lib/utils";
+import { getVerificationUrl } from "./lib/server-utils";
 
 export const { handlers, signIn, auth, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -214,21 +214,6 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      // Check email verification for existing users
-      if ("firstLogin" in user && user.firstLogin) {
-        return true;
-      }
-      if (user?.email) {
-        const existingUser = await getUserByEmail(user.email);
-        if (existingUser && !existingUser.emailVerified) {
-          // Redirect to error page with EmailNotVerified error
-          return `/auth/error?error=EmailNotVerified&email=${user.email}`;
-        }
-      }
-
-      return true;
-    },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -237,11 +222,13 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
       }
       return token;
     },
-    session({ session, user, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.emailVerified = token.emailVerified as Date | null;
-        session.user.role = (token.role as string) || "user";
+    async session({ session, token }) {
+      // get user from database
+      const user = await getUserById(token.id as string);
+      if (user) {
+        session.user.emailVerified = user.emailVerified;
+        session.user.role = user.role || "user";
+        session.user.id = user.id;
       }
 
       return session;

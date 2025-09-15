@@ -15,6 +15,20 @@
       "when": 1757776825198,
       "tag": "0001_concerned_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757861211408,
+      "tag": "0002_public_jane_foster",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757868814481,
+      "tag": "0003_hesitant_shen",
+      "breakpoints": true
     }
   ]
 }

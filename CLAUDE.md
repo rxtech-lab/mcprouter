@@ -9,7 +9,7 @@ This project uses **Bun** as the package manager (specified in `packageManager: 
 ## Development Commands
 
 - **Start development server**: `bun run dev` (uses Next.js with Turbopack)
-- **Build for production**: `bun run build` (uses Next.js with Turbopack)  
+- **Build for production**: `bun run build` (uses Next.js with Turbopack)
 - **Start production server**: `bun run start`
 - **Code linting**: `bun run lint` (uses Biome)
 - **Code formatting**: `bun run format` (uses Biome with auto-fix)
@@ -28,6 +28,7 @@ This project uses Drizzle ORM with PostgreSQL:
 This is a **Next.js 15** application with the following stack:
 
 ### Core Technologies
+
 - **Next.js 15** with App Router (`src/app/` directory structure)
 - **React 19** with TypeScript
 - **Tailwind CSS 4** for styling
@@ -35,20 +36,24 @@ This is a **Next.js 15** application with the following stack:
 - **Neon Database** serverless PostgreSQL
 
 ### Code Organization
+
 - `src/app/` - Next.js App Router pages and layouts
 - `src/lib/` - Shared utilities and database configuration
 - `src/lib/db/schema.ts` - Complete database schema with authentication tables
 - `src/lib/utils.ts` - Utility functions (currently contains `cn` for class merging)
 
 ### Database Schema
+
 The application includes a complete authentication system with these tables:
+
 - **Users** - Core user information with admin/user roles
 - **OAuth** - OAuth provider accounts (Google, etc.)
-- **Sessions** - User session management  
+- **Sessions** - User session management
 - **Authenticators** - WebAuthn/passkey credentials
 - **VerificationTokens** - Email verification and password reset tokens
 
 ### Development Tools
+
 - **Biome** for linting and formatting (configured in `biome.json`)
   - Uses 2-space indentation
   - Includes Next.js and React recommended rules
@@ -60,4 +65,6 @@ The application includes a complete authentication system with these tables:
 ## Environment Setup
 
 Ensure you have a `DATABASE_URL` environment variable configured for the PostgreSQL database connection.
+
 - prefer server actions over restapi for crud
+- never start the dev server. Server is running on port 3000 and use playwright mcp to debug

@@ -1,123 +1,102 @@
-import { getAuthenticators } from "@/app/auth";
-import { AddPasskeySection } from "@/app/components/dashboard/AddPasskeySection";
-import { auth, signOut } from "@/auth";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { auth } from "@/auth";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  listMcpServers,
+  searchMcpServers,
+  listMcpServersByCategory,
+} from "@/lib/db/queries/mcp_queries";
+import { redirect } from "next/navigation";
+import { McpServersPageClient } from "./components/McpServersPageClient";
 
-export default async function ProtectedPage() {
+interface SearchParams {
+  category?: string;
+  search?: string;
+  location?: string;
+  auth?: string;
+  sort?: string;
+  cursor?: string;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await auth();
-  const authenticators = await getAuthenticators();
 
-  if (!session?.user) {
-    return null; // This will be handled by the layout
+  if (!session?.user?.id) {
+    redirect("/auth/signin");
   }
 
+  const params = await searchParams;
+  const { category, search, cursor } = params;
+
+  const limit = 12; // Show more servers per page for grid layout
+
+  // Base query options
+  const baseOptions = {
+    userId: session.user.id,
+    cursor,
+    limit,
+  };
+
+  // Fetch servers based on filters
+  let servers;
+  if (search) {
+    // Search across all servers
+    servers = await searchMcpServers({
+      ...baseOptions,
+      query: search,
+      category: category as any,
+    });
+  } else if (category && category !== "all") {
+    // Filter by specific category
+    servers = await listMcpServersByCategory(
+      session.user.id,
+      category as any,
+      cursor,
+      limit,
+    );
+  } else {
+    // List all servers
+    servers = await listMcpServers({
+      ...baseOptions,
+      category: category as any,
+    });
+  }
+
+  // Fetch servers by category for tab counts (simplified for now)
+  const categories = [
+    "crypto",
+    "finance",
+    "language",
+    "networking",
+    "security",
+    "storage",
+  ];
+  const serversByCategory: Record<string, any> = {};
+
+  // For performance, we'll fetch category counts in parallel but with smaller limits
+  await Promise.all(
+    categories.map(async (cat) => {
+      try {
+        const categoryServers = await listMcpServersByCategory(
+          session.user.id,
+          cat as any,
+          undefined,
+          limit,
+        );
+        serversByCategory[cat] = categoryServers;
+      } catch (error) {
+        console.error(`Error fetching ${cat} servers:`, error);
+        serversByCategory[cat] = { data: [], hasMore: false };
+      }
+    }),
+  );
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome to your Dashboard!</CardTitle>
-            <CardDescription>
-              You have successfully authenticated and verified your email.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Name:</span>
-                <span>{session.user.name || "Not provided"}</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Email:</span>
-                <span>{session.user.email}</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Email Verified:</span>
-                <Badge variant="secondary">✓ Verified</Badge>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Role:</span>
-                <Badge variant="outline">
-                  {(session.user as any).role || "user"}
-                </Badge>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="font-medium">User ID:</span>
-                <span className="text-sm text-muted-foreground font-mono">
-                  {session.user.id}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Security Settings</CardTitle>
-            <CardDescription>
-              Enhance your account security with additional authentication
-              methods.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {authenticators.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Authenticators:</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {authenticators.length} registered
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {authenticators.map((authenticator) => (
-                    <Badge
-                      key={authenticator.credentialID}
-                      variant="outline"
-                      className="capitalize"
-                    >
-                      {authenticator.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            <AddPasskeySection />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Actions</CardTitle>
-            <CardDescription>
-              Manage your session and account settings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              action={async () => {
-                "use server";
-                await signOut();
-              }}
-            >
-              <Button type="submit" variant="outline">
-                Sign Out
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <McpServersPageClient
+      servers={servers}
+      serversByCategory={serversByCategory}
+    />
   );
 }

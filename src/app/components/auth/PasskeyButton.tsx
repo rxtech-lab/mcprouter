@@ -5,7 +5,7 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,11 @@ interface AddPasskeyProps {
   mode: "add-passkey";
   passkeyName: string;
   disabled: boolean;
+  session?: {
+    user: {
+      email?: string | null;
+    };
+  } | null;
   onComplete?: () => void;
 }
 
@@ -45,7 +50,6 @@ export function PasskeyButton({
   ...props
 }: PasskeyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { data: session } = useSession();
 
   const handlePasskeyAuth = async () => {
     setIsLoading(true);
@@ -112,7 +116,7 @@ export function PasskeyButton({
   };
 
   const handleAddPasskey = async () => {
-    if (!session?.user?.email) {
+    if (!("session" in props) || !props.session?.user?.email) {
       throw new Error("You must be signed in to add a passkey");
     }
 

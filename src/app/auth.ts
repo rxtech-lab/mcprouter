@@ -19,7 +19,7 @@ import {
 } from "@/lib/redis/verification-queries";
 import { sendVerificationEmail } from "@/lib/email";
 import { config } from "@/config/config";
-import { getVerificationUrl } from "@/lib/utils";
+import { getVerificationUrl } from "@/lib/server-utils";
 
 export async function signInWithEmail(email: string) {
   try {
