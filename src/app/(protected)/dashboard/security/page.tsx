@@ -1,5 +1,6 @@
 import { getAuthenticators } from "@/app/auth";
 import { AddPasskeySection } from "@/app/components/dashboard/AddPasskeySection";
+import { DeleteAuthenticatorButton } from "@/app/components/dashboard/DeleteAuthenticatorButton";
 import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -68,20 +69,33 @@ export default async function ProtectedPage() {
             {authenticators.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">Authenticators:</span>
+                  <span className="font-medium">Registered Passkeys:</span>
                   <Badge variant="secondary" className="text-xs">
-                    {authenticators.length} registered
+                    {authenticators.length}
                   </Badge>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-2">
                   {authenticators.map((authenticator) => (
-                    <Badge
+                    <div
                       key={authenticator.credentialID}
-                      variant="outline"
-                      className="capitalize"
+                      className="flex items-center justify-between p-3 border rounded-lg bg-muted/20"
                     >
-                      {authenticator.name}
-                    </Badge>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 bg-green-500 rounded-full" />
+                        <div>
+                          <div className="font-medium capitalize">
+                            {authenticator.name}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {authenticator.credentialDeviceType}
+                          </div>
+                        </div>
+                      </div>
+                      <DeleteAuthenticatorButton
+                        credentialId={authenticator.credentialID}
+                        authenticatorName={authenticator.name}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>

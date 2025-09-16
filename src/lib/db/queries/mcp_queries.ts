@@ -322,7 +322,7 @@ export async function listMcpServers(
     : undefined;
 
   return {
-    data,
+    data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
   };
@@ -390,7 +390,7 @@ export async function searchMcpServers(
     : undefined;
 
   return {
-    data,
+    data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
   };
@@ -564,7 +564,7 @@ export async function getMcpServerDetailWithChangelogs(
   return {
     ...mcpServer,
     changelogs: serverChangelogs,
-  };
+  } as McpServerWithChangelogs;
 }
 
 /**
@@ -592,7 +592,7 @@ export async function getPublicMcpServerDetailWithChangelogs(
   return {
     ...mcpServer,
     changelogs: serverChangelogs,
-  };
+  } as McpServerWithChangelogs;
 }
 
 /**
@@ -658,7 +658,7 @@ export async function listPublicMcpServers(
     : undefined;
 
   return {
-    data,
+    data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
   };
@@ -709,7 +709,7 @@ export async function searchPublicMcpServers(
     : undefined;
 
   return {
-    data,
+    data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
   };

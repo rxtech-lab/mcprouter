@@ -13,6 +13,7 @@ import {
   constructMcpServerUrl,
   validateApiKeyForServer,
 } from "@/lib/server-utils";
+import { getKeyWithValueById } from "@/lib/db/queries/key_queries";
 import { auth } from "@/auth";
 
 /**
@@ -89,7 +90,14 @@ export async function generateServerUrlWithApiKey(
       return { success: true, url: url || undefined };
     }
 
-    // Validate the API key belongs to the user
+    // Validate the API key belongs to the user and get the actual key value
+    const keyWithValue = await getKeyWithValueById(keyId, session.user.id);
+
+    if (!keyWithValue) {
+      return { success: false, error: "Invalid API key" };
+    }
+
+    // Additional validation to ensure the key is valid for the server
     const isValidKey = await validateApiKeyForServer(
       serverId,
       session.user.id,
@@ -100,12 +108,7 @@ export async function generateServerUrlWithApiKey(
       return { success: false, error: "Invalid API key" };
     }
 
-    // For now, we'll use a placeholder API key since we need the actual raw key
-    // In a real implementation, you'd need to retrieve the raw key value
-    // which should only be shown once during creation
-    const placeholderApiKey = "your-api-key-here";
-
-    const authenticatedUrl = constructMcpServerUrl(server, placeholderApiKey);
+    const authenticatedUrl = constructMcpServerUrl(server, keyWithValue.value);
 
     if (!authenticatedUrl) {
       return { success: false, error: "Unable to generate URL" };

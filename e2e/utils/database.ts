@@ -201,9 +201,43 @@ export async function createTestMcpServer(
     isPublic: boolean;
     locationType: string[];
     authenticationMethods: string[];
+    github?: string;
+    socialLinks?: {
+      website?: string;
+      twitter?: string;
+      discord?: string;
+      telegram?: string;
+      instagram?: string;
+      youtube?: string;
+      linkedin?: string;
+      facebook?: string;
+      pinterest?: string;
+      reddit?: string;
+      tiktok?: string;
+      twitch?: string;
+      vimeo?: string;
+    };
   }>,
 ) {
   try {
+    // Ensure the user exists
+    let user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (user.length === 0) {
+      // Create test user if it doesn't exist
+      await db.insert(users).values({
+        id: userId,
+        email: `${userId}@test.com`,
+        name: "Test User",
+        emailVerified: new Date(),
+        role: "user",
+      });
+      console.log(`[TEST DB] Created test user: ${userId}`);
+    }
+
     const defaultData = {
       name: `Test Server ${Date.now()}`,
       url: "https://example.com/mcp",
@@ -225,6 +259,8 @@ export async function createTestMcpServer(
       authenticationMethods: mergedData.authenticationMethods as any,
       isPublic: mergedData.isPublic,
       createdBy: userId,
+      ...(mergedData.github && { github: mergedData.github }),
+      ...(mergedData.socialLinks && { socialLinks: mergedData.socialLinks }),
     };
 
     const result = await db.insert(mcpServers).values(insertData).returning();
@@ -243,6 +279,24 @@ export async function createTestKey(
   name?: string,
 ) {
   try {
+    // Ensure the user exists
+    let user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (user.length === 0) {
+      // Create test user if it doesn't exist
+      await db.insert(users).values({
+        id: userId,
+        email: `${userId}@test.com`,
+        name: "Test User",
+        emailVerified: new Date(),
+        role: "user",
+      });
+      console.log(`[TEST DB] Created test user: ${userId}`);
+    }
+
     const result = await db
       .insert(keys)
       .values({

@@ -79,7 +79,10 @@ export function McpServerCard({ server, onShowUrl }: McpServerCardProps) {
       className="group cursor-pointer break-inside-avoid mb-4 h-full"
       onClick={handleCardClick}
     >
-      <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-border/80 h-full">
+      <div
+        className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-border/80 h-full"
+        data-testid="mcp-server-card"
+      >
         {/* Cover Image */}
         {server.image?.cover && !imageError && (
           <div className="relative h-32 overflow-hidden">
@@ -197,7 +200,7 @@ export function McpServerCard({ server, onShowUrl }: McpServerCardProps) {
                     "inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md transition-colors",
                     requiresApiKey
                       ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
-                      : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+                      : "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
                   )}
                 >
                   {requiresApiKey ? (

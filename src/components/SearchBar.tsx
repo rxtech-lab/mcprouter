@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
   value?: string;
-  onChange?: (value: string) => void;
+  onSubmit?: (value: string) => void;
   onBlur?: () => void;
   autoFocus?: boolean;
   className?: string;
@@ -15,7 +15,7 @@ interface SearchBarProps {
 
 export function SearchBar({
   value = "",
-  onChange,
+  onSubmit,
   onBlur,
   autoFocus = false,
   className,
@@ -36,18 +36,18 @@ export function SearchBar({
 
   const handleChange = (newValue: string) => {
     setInternalValue(newValue);
-    onChange?.(newValue);
   };
 
   const handleClear = () => {
     setInternalValue("");
-    onChange?.("");
     inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       onBlur?.();
+    } else if (e.key === "Enter") {
+      onSubmit?.(internalValue);
     }
   };
 
@@ -57,6 +57,7 @@ export function SearchBar({
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           ref={inputRef}
+          data-testid="search-bar"
           type="text"
           value={internalValue}
           onChange={(e) => handleChange(e.target.value)}

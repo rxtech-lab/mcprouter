@@ -98,14 +98,13 @@ export async function createKey(
 ): Promise<CreateKeyResponse> {
   const id = nanoid();
   const rawKey = generateRandomKey();
-  const hashedKey = hashKey(rawKey);
 
   const [newKey] = await db
     .insert(keys)
     .values({
       id,
       name: data.name,
-      value: hashedKey,
+      value: rawKey,
       type: data.type,
       createdBy: data.createdBy,
     })
@@ -128,6 +127,30 @@ export async function getKeyById(id: string, userId: string) {
     .select({
       id: keys.id,
       name: keys.name,
+      type: keys.type,
+      createdBy: keys.createdBy,
+      createdAt: keys.createdAt,
+      updatedAt: keys.updatedAt,
+    })
+    .from(keys)
+    .where(and(eq(keys.id, id), eq(keys.createdBy, userId)))
+    .limit(1);
+
+  return key || null;
+}
+
+/**
+ * Retrieves a key with its value by its ID, ensuring it belongs to the specified user
+ * @param id - The key ID to retrieve
+ * @param userId - The user ID that owns the key
+ * @returns Promise resolving to the key with value or null if not found
+ */
+export async function getKeyWithValueById(id: string, userId: string) {
+  const [key] = await db
+    .select({
+      id: keys.id,
+      name: keys.name,
+      value: keys.value,
       type: keys.type,
       createdBy: keys.createdBy,
       createdAt: keys.createdAt,

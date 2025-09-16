@@ -40,7 +40,7 @@ export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
         });
       }
     },
-    [isSearch, searchQuery, category]
+    [isSearch, searchQuery, category],
   );
 
   const {
@@ -132,7 +132,10 @@ export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
   if (servers.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-center">
+        <div
+          className="text-center"
+          data-testid={isSearch ? "search-no-results" : "no-servers"}
+        >
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -151,7 +154,10 @@ export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
     <div className="w-full">
       {/* Results count */}
       <div className="mb-6">
-        <p className="text-sm text-muted-foreground">
+        <p
+          data-testid="servers-count"
+          className="text-sm text-muted-foreground"
+        >
           {isSearch
             ? `Found ${servers.length} server${servers.length !== 1 ? "s" : ""} for "${searchQuery}"`
             : `${servers.length} server${servers.length !== 1 ? "s" : ""} available`}
@@ -168,27 +174,25 @@ export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
         }}
       >
         <AnimatePresence mode="popLayout">
-          {[...servers, ...servers, ...servers, ...servers].map(
-            (server, index) => (
-              <motion.div
-                key={index}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{
-                  duration: 0.3,
-                  delay: index * 0.05, // Stagger animation
-                }}
-                className="mb-4"
-                style={{
-                  minHeight: `${200 + (index % 2) * 50}px`,
-                }}
-              >
-                <McpServerCard server={server} />
-              </motion.div>
-            )
-          )}
+          {servers.map((server, index) => (
+            <motion.div
+              key={server.id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{
+                duration: 0.3,
+                delay: index * 0.05, // Stagger animation
+              }}
+              className="mb-4"
+              style={{
+                minHeight: `${200 + (index % 2) * 50}px`,
+              }}
+            >
+              <McpServerCard server={server} />
+            </motion.div>
+          ))}
         </AnimatePresence>
       </Masonry>
 

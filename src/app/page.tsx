@@ -7,12 +7,12 @@ import { motion } from "framer-motion";
 import { categories } from "@/config/categories";
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>();
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={setSearchQuery} searchQuery={searchQuery} />
+      <Header />
 
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
@@ -41,6 +41,7 @@ export default function Home() {
           <div className="flex flex-wrap gap-2 justify-center">
             <button
               onClick={() => setSelectedCategory(undefined)}
+              data-testid="category-filter-all"
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 !selectedCategory
                   ? "bg-primary text-primary-foreground"
@@ -53,6 +54,7 @@ export default function Home() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
+                data-testid={`category-filter-${category}`}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize ${
                   selectedCategory === category
                     ? "bg-primary text-primary-foreground"
