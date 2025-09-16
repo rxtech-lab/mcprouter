@@ -1,16 +1,13 @@
 import {
-  pgEnum,
-  pgTable,
-  serial,
-  text,
-  timestamp,
   boolean,
   integer,
-  primaryKey,
-  uniqueIndex,
-  index,
   jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
 } from "drizzle-orm/pg-core";
+import { categories } from "@/config/categories";
 
 /**
  * User table - core user information
@@ -159,14 +156,7 @@ export const mcpServers = pgTable("McpServer", {
    * Category for the MCP server
    */
   category: text("category", {
-    enum: [
-      "crypto",
-      "finance",
-      "language",
-      "networking",
-      "security",
-      "storage",
-    ],
+    enum: [...categories] as [string, ...string[]],
   }),
   /**
    * Tags for the MCP server

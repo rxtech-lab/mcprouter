@@ -37,7 +37,7 @@ async function setupWebAuthnVirtualAuthenticator(page: Page) {
         hasUserVerification: true,
         isUserVerified: true,
       },
-    }
+    },
   );
 
   return { cdpSession, authenticatorId };
@@ -109,7 +109,7 @@ test.describe("Dashboard Keys Management", () => {
     // Should see keys page content
     await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
     await expect(
-      page.getByText("Manage your MCP and server authentication keys")
+      page.getByText("Manage your MCP and server authentication keys"),
     ).toBeVisible();
     await expect(page.getByTestId("tab-mcp")).toBeVisible();
     await expect(page.getByTestId("tab-server")).toBeVisible();
@@ -251,7 +251,7 @@ test.describe("Dashboard Keys Management", () => {
     // Setup dialog handler for confirmation
     page.on("dialog", (dialog) => {
       expect(dialog.message()).toContain(
-        "Are you sure you want to delete this key?"
+        "Are you sure you want to delete this key?",
       );
       dialog.accept();
     });
@@ -277,7 +277,7 @@ test.describe("Dashboard Keys Management", () => {
     // Setup dialog handler for confirmation
     page.on("dialog", (dialog) => {
       expect(dialog.message()).toContain(
-        "Are you sure you want to delete this key?"
+        "Are you sure you want to delete this key?",
       );
       dialog.accept();
     });
@@ -303,7 +303,7 @@ test.describe("Dashboard Keys Management", () => {
     // Setup dialog handler to cancel
     page.on("dialog", (dialog) => {
       expect(dialog.message()).toContain(
-        "Are you sure you want to delete this key?"
+        "Are you sure you want to delete this key?",
       );
       dialog.dismiss();
     });
@@ -424,7 +424,7 @@ test.describe("Dashboard Keys Management", () => {
     // Should be on server tab
     await expect(page.getByTestId("tab-server")).toHaveAttribute(
       "data-state",
-      "active"
+      "active",
     );
     await expect(page.getByTestId(`key-name-${serverKey.id}`)).toBeVisible();
     await expect(page.getByTestId(`key-name-${mcpKey.id}`)).not.toBeVisible();
@@ -435,11 +435,11 @@ test.describe("Dashboard Keys Management", () => {
     // Should be on MCP tab
     await expect(page.getByTestId("tab-mcp")).toHaveAttribute(
       "data-state",
-      "active"
+      "active",
     );
     await expect(page.getByTestId(`key-name-${mcpKey.id}`)).toBeVisible();
     await expect(
-      page.getByTestId(`key-name-${serverKey.id}`)
+      page.getByTestId(`key-name-${serverKey.id}`),
     ).not.toBeVisible();
   });
 });
