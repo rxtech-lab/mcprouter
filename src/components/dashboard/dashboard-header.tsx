@@ -2,6 +2,9 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Home } from "lucide-react";
+import Link from "next/link";
 
 export function DashboardHeader() {
   return (
@@ -12,6 +15,14 @@ export function DashboardHeader() {
         <div className="flex flex-col">
           <h1 className="text-lg font-semibold">Dashboard</h1>
         </div>
+      </div>
+      <div className="ml-auto px-4">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/" className="flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
+        </Button>
       </div>
     </header>
   );

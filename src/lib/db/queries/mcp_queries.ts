@@ -322,7 +322,7 @@ export async function listMcpServers(
     : undefined;
 
   return {
-    data,
+    data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
   };
@@ -390,7 +390,7 @@ export async function searchMcpServers(
     : undefined;
 
   return {
-    data,
+    data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
   };
@@ -564,7 +564,7 @@ export async function getMcpServerDetailWithChangelogs(
   return {
     ...mcpServer,
     changelogs: serverChangelogs,
-  };
+  } as McpServerWithChangelogs;
 }
 
 /**
@@ -592,5 +592,125 @@ export async function getPublicMcpServerDetailWithChangelogs(
   return {
     ...mcpServer,
     changelogs: serverChangelogs,
+  } as McpServerWithChangelogs;
+}
+
+/**
+ * Options for listing public MCP servers with filtering and pagination
+ */
+export interface ListPublicMcpServersOptions {
+  /** Optional category filter */
+  category?: McpServerCategory;
+  /** Cursor for pagination (ISO date string) */
+  cursor?: string;
+  /** Maximum number of MCP servers to return (default: 20) */
+  limit?: number;
+}
+
+/**
+ * Options for searching public MCP servers
+ */
+export interface SearchPublicMcpServersOptions {
+  /** Search query to match against name, description, and tags */
+  query: string;
+  /** Optional category filter */
+  category?: McpServerCategory;
+  /** Cursor for pagination (ISO date string) */
+  cursor?: string;
+  /** Maximum number of MCP servers to return (default: 20) */
+  limit?: number;
+}
+
+/**
+ * Lists public MCP servers with cursor-based pagination and optional filtering
+ * @param options - The listing options including category filter, cursor, and limit
+ * @returns Promise resolving to paginated MCP servers response
+ */
+export async function listPublicMcpServers(
+  options: ListPublicMcpServersOptions = {},
+): Promise<PaginatedMcpServers> {
+  const { category, cursor, limit = 20 } = options;
+
+  let whereConditions: SQL<unknown> = eq(mcpServers.isPublic, true);
+
+  if (category) {
+    whereConditions = and(whereConditions, eq(mcpServers.category, category))!;
+  }
+
+  if (cursor) {
+    whereConditions = and(
+      whereConditions,
+      lt(mcpServers.createdAt, new Date(cursor)),
+    )!;
+  }
+
+  const results = await db
+    .select()
+    .from(mcpServers)
+    .where(whereConditions)
+    .orderBy(desc(mcpServers.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = results.length > limit;
+  const data = hasMore ? results.slice(0, limit) : results;
+  const nextCursor = hasMore
+    ? data[data.length - 1]?.createdAt.toISOString()
+    : undefined;
+
+  return {
+    data: data as PaginatedMcpServers["data"],
+    nextCursor,
+    hasMore,
+  };
+}
+
+/**
+ * Searches public MCP servers by name, description, and tags with cursor-based pagination
+ * @param options - The search options including query, category filter, cursor, and limit
+ * @returns Promise resolving to paginated MCP servers response
+ */
+export async function searchPublicMcpServers(
+  options: SearchPublicMcpServersOptions,
+): Promise<PaginatedMcpServers> {
+  const { query, category, cursor, limit = 20 } = options;
+
+  const searchPattern = `%${query}%`;
+
+  let whereConditions: SQL<unknown> = and(
+    eq(mcpServers.isPublic, true),
+    or(
+      ilike(mcpServers.name, searchPattern),
+      ilike(mcpServers.description, searchPattern),
+    ),
+  )!;
+
+  if (category) {
+    whereConditions = and(whereConditions, eq(mcpServers.category, category))!;
+  }
+
+  if (cursor) {
+    whereConditions = and(
+      whereConditions,
+      lt(mcpServers.createdAt, new Date(cursor)),
+    )!;
+  }
+
+  const results = await db
+    .select()
+    .from(mcpServers)
+    .where(whereConditions)
+    .orderBy(desc(mcpServers.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = results.length > limit;
+  const data = hasMore ? results.slice(0, limit) : results;
+  const nextCursor = hasMore
+    ? data[data.length - 1]?.createdAt.toISOString()
+    : undefined;
+
+  return {
+    data: data as PaginatedMcpServers["data"],
+    nextCursor,
+    hasMore,
   };
 }

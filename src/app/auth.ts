@@ -2,7 +2,10 @@
 
 import { auth, signIn } from "@/auth";
 import { getUserByEmail } from "@/lib/db/queries/user_queries";
-import { getAuthenticatorsByUserId } from "@/lib/db/queries/authenticator_queries";
+import {
+  getAuthenticatorsByUserId,
+  deleteAuthenticatorByCredentialId,
+} from "@/lib/db/queries/authenticator_queries";
 import { AuthError } from "next-auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -226,4 +229,23 @@ export async function getAuthenticators() {
     throw new Error("User not authenticated");
   }
   return await getAuthenticatorsByUserId(session.user.id);
+}
+
+/**
+ * Delete an authenticator for the current user
+ */
+export async function deleteAuthenticator(credentialId: string) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("User not authenticated");
+  }
+
+  try {
+    await deleteAuthenticatorByCredentialId(credentialId, session.user.id);
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting authenticator:", error);
+    throw new Error("Failed to delete authenticator");
+  }
 }
