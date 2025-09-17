@@ -43,6 +43,12 @@ export async function enqueueCrawlerJob(server: McpServer) {
   if (process.env.IS_PLAYWRIGHT_TEST === "true") {
     return;
   }
+  console.log(
+    "Enqueuing crawler job for server",
+    server.id,
+    "with url",
+    BASE_URL
+  );
   const client = new Client({
     token: process.env.QSTASH_TOKEN!,
     baseUrl: process.env.QSTASH_URL!,
@@ -87,6 +93,7 @@ export async function deleteCrawlerJob(server: McpServer) {
   if (process.env.IS_PLAYWRIGHT_TEST === "true") {
     return;
   }
+  console.log("Deleting crawler job for server", server.id);
   const client = new Client({
     token: process.env.QSTASH_TOKEN!,
     baseUrl: process.env.QSTASH_URL!,
