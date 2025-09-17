@@ -57,8 +57,8 @@ async function signInSuccessfully(page: Page) {
   await page.getByTestId("passkey-signup-button").click();
 
   await verifyUserEmail(testEmail);
-  await page.reload();
-  // Should be redirected to dashboard since user is verified
+
+  // Wait for automatic redirect to dashboard after email verification
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
   // get the user id from the database
   const user = await getUserByEmail(testEmail);
@@ -108,25 +108,38 @@ test.describe("Dashboard MCP Server Management", () => {
     await page.getByTestId("url-input").fill("https://example.com/mcp");
     await page.getByTestId("github-input").fill("https://github.com/test/repo");
 
-    // Go to next step
+    // Go to next step and wait for validation
     await page.getByTestId("next-button").click();
+    await expect(page.getByTestId("step-1-content")).toBeVisible();
 
     // Step 2 (Links & Social) - skip for now
     await page.getByTestId("next-button").click();
+    await expect(page.getByTestId("step-2-content")).toBeVisible();
 
     // Step 3 (Configuration)
     await page.getByTestId("remote-checkbox").check();
     await page.getByTestId("auth-none-checkbox").check();
     await page.getByTestId("public-checkbox").check();
 
-    // Go to next step
+    // Go to next step and wait for validation
     await page.getByTestId("next-button").click();
+    await expect(page.getByTestId("step-3-content")).toBeVisible();
 
-    // Step 4 (Media & Images) - skip for now
+    // Step 4 (Media & Images) - fill in required fields to avoid validation errors
+    await page.getByTestId("cover-input").fill("https://example.com/cover.jpg");
+    await page.getByTestId("logo-input").fill("https://example.com/logo.png");
+    // Icon is optional, so we can leave it empty
+
+    // Wait for submit button to be enabled (all steps completed)
+    await expect(page.getByTestId("submit-button")).toBeEnabled({
+      timeout: 5000,
+    });
+
+    // Submit the form
     await page.getByTestId("submit-button").click();
 
-    // Should see success and be back to dashboard
-    await expect(page).toHaveURL(/\/dashboard/);
+    // Wait for form submission and redirect
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
     // Should see the created server
     await expect(page.getByText("Test MCP Server")).toBeVisible();

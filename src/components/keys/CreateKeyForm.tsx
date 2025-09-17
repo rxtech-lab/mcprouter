@@ -160,8 +160,9 @@ export function CreateKeyForm({
                 Key created successfully!
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                Please copy and save this key. You won't be able to see it
-                again.
+                {keyType === "mcp"
+                  ? "Please copy and save this key. You can view it again later if needed."
+                  : "Please copy and save this key. You won't be able to see it again."}
               </p>
 
               <div className="flex items-center gap-2 p-3 bg-background border rounded-md">

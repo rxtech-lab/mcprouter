@@ -12,7 +12,7 @@ test.describe("Search Page", () => {
 
     // Check page header
     await expect(
-      page.getByRole("heading", { name: "Search Results" })
+      page.getByRole("heading", { name: "Search Results" }),
     ).toBeVisible();
   });
 
@@ -22,7 +22,7 @@ test.describe("Search Page", () => {
     // Should show empty state
     await expect(page.getByTestId("search-empty-state")).toBeVisible();
     await expect(
-      page.getByText("Enter a search query to find MCP servers")
+      page.getByText("Enter a search query to find MCP servers"),
     ).toBeVisible();
   });
 
@@ -49,7 +49,7 @@ test.describe("Search Page", () => {
 
     // Should show search results count
     await expect(page.getByTestId("search-results-count")).toContainText(
-      'for "crypto"'
+      'for "crypto"',
     );
   });
 
@@ -150,7 +150,7 @@ test.describe("Search Page", () => {
 
     // Should find the server with partial name match
     await expect(
-      page.getByText("Advanced Bitcoin Trading Platform")
+      page.getByText("Advanced Bitcoin Trading Platform"),
     ).toBeVisible();
   });
 
@@ -179,7 +179,7 @@ test.describe("Search Page", () => {
 
     // Should show correct count
     await expect(page.getByTestId("search-results-count")).toContainText(
-      "Found 3 servers"
+      "Found 3 servers",
     );
   });
 
@@ -199,7 +199,7 @@ test.describe("Search Page", () => {
 
     // Should handle URL encoding correctly
     await expect(page.getByTestId("search-results-count")).toContainText(
-      'for "Special Characters"'
+      'for "Special Characters"',
     );
   });
 
@@ -210,7 +210,7 @@ test.describe("Search Page", () => {
     // Should show empty state
     await expect(page.getByTestId("search-empty-state")).toBeVisible();
     await expect(
-      page.getByText("Enter a search query to find MCP servers")
+      page.getByText("Enter a search query to find MCP servers"),
     ).toBeVisible();
   });
 
@@ -223,7 +223,7 @@ test.describe("Search Page", () => {
     // Should show empty state (since query.trim() would be empty)
     await expect(page.getByTestId("search-empty-state")).toBeVisible();
     await expect(
-      page.getByText("Enter a search query to find MCP servers")
+      page.getByText("Enter a search query to find MCP servers"),
     ).toBeVisible();
   });
 });

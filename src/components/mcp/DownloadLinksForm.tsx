@@ -9,9 +9,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { PlusIcon, TrashIcon, Download } from "lucide-react";
 import { Control, useFieldArray, UseFormSetValue } from "react-hook-form";
+
+const PLATFORM_OPTIONS = [
+  "linux/arm64",
+  "linux/amd64",
+  "windows/arm64",
+  "windows/amd64",
+  "macOS/arm64",
+  "macOS/amd64",
+] as const;
 
 interface DownloadLinksFormProps {
   control: Control<any>;
@@ -87,12 +103,20 @@ export function DownloadLinksForm({
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormLabel>Platform</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Windows, macOS, Linux, Docker"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select platform" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PLATFORM_OPTIONS.map((platform) => (
+                          <SelectItem key={platform} value={platform}>
+                            {platform}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

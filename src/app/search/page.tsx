@@ -5,7 +5,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { searchPublicMcpServers } from "@/lib/db/queries/mcp_queries";
 
 interface SearchPageProps {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }
 
 async function SearchResults({ query }: { query: string }) {
@@ -77,8 +77,8 @@ function LoadingSkeleton() {
   );
 }
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
-  const query = searchParams.q || "";
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const query = (await searchParams).q || "";
 
   return (
     <div className="min-h-screen bg-background">

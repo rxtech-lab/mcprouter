@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import {
   createKey,
   deleteKey,
+  getKeyWithValueById,
   type KeyType,
 } from "@/lib/db/queries/key_queries";
 
@@ -15,6 +16,10 @@ const createKeySchema = z.object({
 });
 
 const deleteKeySchema = z.object({
+  id: z.string().min(1, "ID is required"),
+});
+
+const viewKeySchema = z.object({
   id: z.string().min(1, "ID is required"),
 });
 
@@ -111,5 +116,56 @@ export async function deleteKeyAction(
   } catch (error) {
     console.error("Error deleting key:", error);
     return { success: false, error: "Failed to delete key" };
+  }
+}
+
+export async function viewKeyAction(
+  formData: FormData,
+): Promise<
+  ActionResult<{ id: string; name: string; value: string; type: KeyType }>
+> {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const id = formData.get("id") as string;
+
+    const validation = viewKeySchema.safeParse({ id });
+    if (!validation.success) {
+      return {
+        success: false,
+        error: validation.error.issues.map((e) => e.message).join(", "),
+      };
+    }
+
+    const key = await getKeyWithValueById(validation.data.id, session.user.id);
+
+    if (!key) {
+      return { success: false, error: "Key not found or access denied" };
+    }
+
+    // Only allow viewing MCP keys (type: "user")
+    if (key.type !== "user") {
+      return {
+        success: false,
+        error: "Server keys cannot be viewed after creation",
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: key.id,
+        name: key.name,
+        value: key.value,
+        type: key.type,
+      },
+    };
+  } catch (error) {
+    console.error("Error viewing key:", error);
+    return { success: false, error: "Failed to view key" };
   }
 }

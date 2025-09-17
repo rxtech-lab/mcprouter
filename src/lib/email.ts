@@ -6,8 +6,6 @@ export async function sendVerificationEmail(
   email: string,
   verificationUrl: string,
 ) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  console.log("Current environment:", process.env.NODE_ENV);
   if (process.env.IS_PLAYWRIGHT_TEST === "true") {
     console.log(
       `[TEST MODE] Skipping email send to ${email} with URL: ${verificationUrl}`,
@@ -15,6 +13,8 @@ export async function sendVerificationEmail(
     return { id: "test-email-id" };
   }
 
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  console.log("Current environment:", process.env.NODE_ENV);
   try {
     const emailHtml = await render(VerificationEmail({ verificationUrl }));
 
