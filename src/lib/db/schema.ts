@@ -201,3 +201,5 @@ export const keys = pgTable("Key", {
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
+
+export type McpServer = typeof mcpServers.$inferSelect;

@@ -64,7 +64,13 @@ The application includes a complete authentication system with these tables:
 
 ## Environment Setup
 
-Ensure you have a `DATABASE_URL` environment variable configured for the PostgreSQL database connection.
+Ensure you have the following environment variables configured:
+
+- `DATABASE_URL` - PostgreSQL database connection string
+- `QSTASH_TOKEN` - Upstash QStash token for workflow operations (production)
+- `QSTASH_URL` - Upstash QStash URL (local development only)
+- `GITHUB_TOKEN` - GitHub personal access token for API rate limit bypass
+- `NEXTAUTH_URL` - Base URL for the application (used by crawler workflow)
 
 - prefer server actions over restapi for crud
 - never start the dev server. Server is running on port 3000 and use playwright mcp to debug
