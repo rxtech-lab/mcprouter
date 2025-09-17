@@ -1,6 +1,7 @@
 "use server";
 
 import { auth, signOut } from "@/auth";
+import { deleteCrawlerJob, enqueueCrawlerJob } from "@/lib/crawler/crawler";
 import {
   createMcpServer,
   deleteMcpServer,
@@ -109,7 +110,7 @@ export interface ActionResult<T = unknown> {
 }
 
 export async function createMcpServerAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult<{ id: string; name: string }>> {
   try {
     const session = await auth();
@@ -161,6 +162,7 @@ export async function createMcpServerAction(
       createdBy: session.user.id,
     });
 
+    await enqueueCrawlerJob(result);
     revalidatePath("/dashboard");
 
     return {
@@ -177,7 +179,7 @@ export async function createMcpServerAction(
 }
 
 export async function updateMcpServerAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult<void>> {
   try {
     const session = await auth();
@@ -232,6 +234,7 @@ export async function updateMcpServerAction(
       return { success: false, error: "MCP server not found or access denied" };
     }
 
+    await enqueueCrawlerJob(result);
     revalidatePath("/dashboard");
 
     return { success: true };
@@ -242,7 +245,7 @@ export async function updateMcpServerAction(
 }
 
 export async function deleteMcpServerAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult<void>> {
   try {
     const session = await auth();
@@ -267,6 +270,7 @@ export async function deleteMcpServerAction(
       return { success: false, error: "MCP server not found or access denied" };
     }
 
+    await deleteCrawlerJob(result);
     revalidatePath("/dashboard");
 
     return { success: true };
@@ -277,7 +281,7 @@ export async function deleteMcpServerAction(
 }
 
 export async function toggleMcpServerPublicStatusAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult<void>> {
   try {
     const session = await auth();
