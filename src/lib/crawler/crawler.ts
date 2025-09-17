@@ -33,7 +33,7 @@ const maxConcurrency = 10;
 const cronExpression = "0 0 * * *";
 
 const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
+  ? `https://${process.env.VERCEL_URL}?x-vercel-protection-bypass=${process.env.VERCEL_PROTECTION_BYPASS}`
   : `http://localhost:3000`; // for local development
 
 /**
