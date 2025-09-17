@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  createMcpServerAction,
+  updateMcpServerAction,
+} from "@/app/(protected)/dashboard/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,20 +26,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition, useEffect, useCallback } from "react";
+import { CheckIcon, ChevronRightIcon } from "lucide-react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { CheckIcon, ChevronRightIcon } from "lucide-react";
 import { CategorySelect } from "./CategorySelect";
 import { DownloadLinksForm } from "./DownloadLinksForm";
 import { SocialLinksForm } from "./SocialLinksForm";
 import { TagsInput } from "./TagsInput";
-import {
-  createMcpServerAction,
-  updateMcpServerAction,
-  type ActionResult,
-} from "@/app/(protected)/dashboard/actions";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),

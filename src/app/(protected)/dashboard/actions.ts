@@ -48,6 +48,11 @@ const imageStructureSchema = z
 
 const createMcpServerSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
+  description: z
+    .string()
+    .max(500, "Description too long")
+    .optional()
+    .or(z.literal("")),
   url: z
     .string()
     .url("Must be a valid URL")
@@ -116,6 +121,7 @@ export async function createMcpServerAction(
     // Parse form data
     const rawData = {
       name: formData.get("name") as string,
+      description: (formData.get("description") as string) || "", // Default to empty string if not provided
       url: formData.get("url") as string,
       version: formData.get("version") as string,
       github: formData.get("github") as string,
@@ -185,6 +191,7 @@ export async function updateMcpServerAction(
     // Parse form data (similar to create but partial)
     const rawData = {
       name: (formData.get("name") as string) || undefined,
+      description: (formData.get("description") as string) || undefined,
       url: (formData.get("url") as string) || undefined,
       github: (formData.get("github") as string) || undefined,
       category: (formData.get("category") as McpServerCategory) || undefined,

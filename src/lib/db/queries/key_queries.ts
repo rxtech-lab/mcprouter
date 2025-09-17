@@ -243,3 +243,19 @@ export async function deleteKey(id: string, userId: string) {
 export function verifyKey(rawKey: string, hashedKey: string): boolean {
   return hashKey(rawKey) === hashedKey;
 }
+
+export async function getApiKey(userId: string): Promise<{
+  name: string;
+  value: string;
+} | null> {
+  const [key] = await db
+    .select({
+      name: keys.name,
+      value: keys.value,
+    })
+    .from(keys)
+    .where(eq(keys.createdBy, userId))
+    .limit(1);
+
+  return key || null;
+}

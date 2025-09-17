@@ -1,19 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Header } from "@/components/Header";
 import { McpServerGrid } from "@/components/McpServerGrid";
-import { motion } from "framer-motion";
 import { categories } from "@/config/categories";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 export default function Home() {
   const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
+    <div className="bg-background">
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <motion.div

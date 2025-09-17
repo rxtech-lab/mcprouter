@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateKeyForm } from "@/components/keys/CreateKeyForm";
+import { ViewKeyDialog } from "@/components/keys/ViewKeyDialog";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -18,8 +19,9 @@ import {
   KeyIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  EyeIcon,
 } from "lucide-react";
-import { deleteKeyAction } from "../actions";
+import { deleteKeyAction, viewKeyAction } from "../actions";
 
 interface Key {
   id: string;
@@ -51,6 +53,13 @@ export function KeysPageClient({
   const [activeTab, setActiveTab] = useState<"mcp" | "server">("mcp");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createKeyType, setCreateKeyType] = useState<"mcp" | "server">("mcp");
+  const [viewKeyDialogOpen, setViewKeyDialogOpen] = useState(false);
+  const [viewingKey, setViewingKey] = useState<{
+    id: string;
+    name: string;
+    value: string;
+    type: string;
+  } | null>(null);
 
   // Initialize state from URL params
   useEffect(() => {
@@ -94,6 +103,19 @@ export function KeysPageClient({
       router.refresh();
     } else {
       alert(result.error || "Failed to delete key");
+    }
+  };
+
+  const handleViewKey = async (keyId: string, keyName: string) => {
+    const formData = new FormData();
+    formData.append("id", keyId);
+
+    const result = await viewKeyAction(formData);
+    if (result.success && result.data) {
+      setViewingKey(result.data);
+      setViewKeyDialogOpen(true);
+    } else {
+      alert(result.error || "Failed to view key");
     }
   };
 
@@ -160,15 +182,27 @@ export function KeysPageClient({
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDeleteKey(key.id)}
-                  className="text-destructive hover:text-destructive"
-                  data-testid={`delete-key-${key.id}`}
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  {keyType === "mcp" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewKey(key.id, key.name)}
+                      data-testid={`view-key-${key.id}`}
+                    >
+                      <EyeIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteKey(key.id)}
+                    className="text-destructive hover:text-destructive"
+                    data-testid={`delete-key-${key.id}`}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -275,6 +309,12 @@ export function KeysPageClient({
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         keyType={createKeyType}
+      />
+
+      <ViewKeyDialog
+        open={viewKeyDialogOpen}
+        onOpenChange={setViewKeyDialogOpen}
+        keyData={viewingKey}
       />
     </div>
   );
