@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import {
   Github,
   ExternalLink,
@@ -138,9 +139,26 @@ export function McpServerCard({ server, onShowUrl }: McpServerCardProps) {
 
           {/* Description */}
           {server.description && (
-            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-              {server.description}
-            </p>
+            <div className="text-sm text-muted-foreground mb-3 line-clamp-2 max-w-none">
+              <ReactMarkdown
+                components={{
+                  img: () => null, // Disable image rendering
+                  p: ({ children }) => <span>{children}</span>,
+                  a: ({ children, href }) => (
+                    <a
+                      href={href}
+                      className="text-blue-600 hover:text-blue-800"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {server.description}
+              </ReactMarkdown>
+            </div>
           )}
 
           {/* Tags */}
@@ -187,10 +205,10 @@ export function McpServerCard({ server, onShowUrl }: McpServerCardProps) {
             )}
           </div>
 
-          {/* URL Section */}
+          {/* URL Section - Sticky at top */}
           {server.url && isRemote && (
             <div className="border-t pt-3">
-              <div className="flex items-center justify-between mb-2">
+              <div className="sticky top-0 bg-card z-10 flex items-center justify-between mb-2 pb-2 border-b border-border/50">
                 <span className="text-xs font-medium text-muted-foreground">
                   Remote URL
                 </span>
