@@ -116,7 +116,7 @@ export async function crawlGitHubInfo(serverId: string): Promise<GitHubInfo> {
     // Extract README content
     if (readmeData.status === "fulfilled") {
       readme = Buffer.from(readmeData.value.data.content, "base64").toString(
-        "utf-8"
+        "utf-8",
       );
     }
 
@@ -172,7 +172,7 @@ export async function crawlGitHubInfo(serverId: string): Promise<GitHubInfo> {
   } catch (error) {
     console.error(
       `Failed to crawl GitHub info for ${owner}/${cleanRepo}:`,
-      error
+      error,
     );
     throw error;
   }

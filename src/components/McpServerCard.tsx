@@ -117,7 +117,7 @@ export function McpServerCard({ server, onShowUrl }: McpServerCardProps) {
               </h3>
               {server.version && (
                 <span className="text-xs text-muted-foreground">
-                  v{server.version}
+                  v{server.version?.replace(/^v/, "")}
                 </span>
               )}
             </div>

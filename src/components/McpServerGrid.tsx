@@ -89,14 +89,6 @@ export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
   // Collect all servers from all pages
   const servers = data?.pages.flatMap((page) => page.data) ?? [];
 
-  // Masonry breakpoints
-  const breakpointColumnsObj = {
-    default: 4,
-    1100: 3,
-    700: 2,
-    500: 1,
-  };
-
   if (isLoading || isSearching) {
     return (
       <div className="flex items-center justify-center py-12">

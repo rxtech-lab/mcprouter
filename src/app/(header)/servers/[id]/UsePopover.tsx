@@ -76,7 +76,7 @@ export function UsePopover({
               Use {server.name}
               {server.version && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
-                  v{server.version}
+                  v{server.version.replace(/^v/, "")}
                 </span>
               )}
             </h3>

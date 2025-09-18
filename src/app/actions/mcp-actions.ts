@@ -4,10 +4,13 @@ import {
   listPublicMcpServers,
   searchPublicMcpServers as searchPublicMcpServersQuery,
   getPublicMcpServerDetailWithChangelogs,
+  getPaginatedChangelogsByServerId,
   type ListPublicMcpServersOptions,
   type SearchPublicMcpServersOptions,
   type PaginatedMcpServers,
   type McpServerWithChangelogs,
+  type ListChangelogsOptions,
+  type PaginatedChangelogs,
 } from "@/lib/db/queries/mcp_queries";
 import {
   constructMcpServerUrl,
@@ -151,5 +154,30 @@ export async function downloadMcpServerFile(
   } catch (error) {
     console.error("Error getting download link:", error);
     return { success: false, error: "Failed to get download link" };
+  }
+}
+
+/**
+ * Server action to get paginated changelogs for a specific MCP server
+ */
+export async function getPaginatedChangelogs(
+  serverId: string,
+  options: Omit<ListChangelogsOptions, "mcpServerId"> = {},
+): Promise<PaginatedChangelogs> {
+  try {
+    // First verify the server exists and is public
+    const server = await getPublicMcpServerDetailWithChangelogs(serverId);
+
+    if (!server) {
+      throw new Error("Server not found");
+    }
+
+    return await getPaginatedChangelogsByServerId({
+      ...options,
+      mcpServerId: serverId,
+    });
+  } catch (error) {
+    console.error("Error fetching paginated changelogs:", error);
+    throw new Error("Failed to fetch changelogs");
   }
 }
