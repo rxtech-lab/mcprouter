@@ -213,7 +213,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                               ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                               : method === "none"
                                 ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                : "bg-secondary text-secondary-foreground"
+                                : "bg-secondary text-secondary-foreground",
                           )}
                         >
                           {method === "apiKey" && <Lock className="h-3 w-3" />}
@@ -309,7 +309,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                           {getSocialIcon(platform)}
                           {platform}
                         </a>
-                      )
+                      ),
                   )}
               </div>
             </div>

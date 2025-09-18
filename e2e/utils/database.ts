@@ -10,6 +10,7 @@ import {
   changelogs,
 } from "../../src/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { hashKey, generateRandomKey } from "@/lib/db/queries/key_queries";
 
 const sql = neon(process.env.TEST_DATABASE_URL!);
 const db = drizzle(sql);
@@ -66,7 +67,7 @@ export async function verifyUserEmail(email: string) {
       }
 
       console.log(
-        `[TEST DB] Waiting for user ${email} to be created... (attempt ${attempts + 1}/${maxAttempts})`,
+        `[TEST DB] Waiting for user ${email} to be created... (attempt ${attempts + 1}/${maxAttempts})`
       );
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
       attempts++;
@@ -74,7 +75,7 @@ export async function verifyUserEmail(email: string) {
 
     if (!user) {
       throw new Error(
-        `User with email ${email} not found after ${maxAttempts} attempts`,
+        `User with email ${email} not found after ${maxAttempts} attempts`
       );
     }
 
@@ -122,7 +123,7 @@ export async function isUserEmailVerified(email: string): Promise<boolean> {
   } catch (error) {
     console.error(
       `[TEST DB] Error checking verification status for ${email}:`,
-      error,
+      error
     );
     throw error;
   }
@@ -217,7 +218,7 @@ export async function createTestMcpServer(
       twitch?: string;
       vimeo?: string;
     };
-  }>,
+  }>
 ) {
   try {
     // Ensure the user exists
@@ -276,7 +277,7 @@ export async function createTestMcpServer(
 export async function createTestKey(
   userId: string,
   keyType: "user" | "server",
-  name?: string,
+  name?: string
 ) {
   try {
     // Ensure the user exists
@@ -297,19 +298,24 @@ export async function createTestKey(
       console.log(`[TEST DB] Created test user: ${userId}`);
     }
 
+    const rawKey = generateRandomKey();
+    const hashedKey = hashKey(rawKey);
     const result = await db
       .insert(keys)
       .values({
         id: `test_key_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         name: name || `Test ${keyType} Key`,
-        value: `test_key_value_${Date.now()}`,
+        value: keyType === "server" ? hashedKey : rawKey,
         type: keyType,
         createdBy: userId,
       })
       .returning();
 
     console.log(`[TEST DB] Test ${keyType} key created:`, result[0]);
-    return result[0];
+    return {
+      ...result[0],
+      rawKey,
+    };
   } catch (error) {
     console.error(`[TEST DB] Error creating test ${keyType} key:`, error);
     throw error;
