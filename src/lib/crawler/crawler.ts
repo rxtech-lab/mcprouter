@@ -33,7 +33,7 @@ const maxConcurrency = 10;
 const cronExpression = "0 0 * * *";
 
 const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}?x-vercel-protection-bypass=${process.env.VERCEL_PROTECTION_BYPASS}`
+  ? `https://${process.env.VERCEL_URL}`
   : `http://localhost:3000`; // for local development
 
 /**
@@ -51,7 +51,7 @@ export async function enqueueCrawlerJob(server: McpServer) {
     return;
   }
 
-  const workflowUrl = `${BASE_URL}/api/crawler/workflow`;
+  const workflowUrl = `${BASE_URL}/api/crawler/workflow?x-vercel-protection-bypass=${process.env.VERCEL_PROTECTION_BYPASS}`;
   const scheduleId = `crawler-${server.id}`;
   // delete the existing job if it exists
   await client.schedules.delete(scheduleId);
