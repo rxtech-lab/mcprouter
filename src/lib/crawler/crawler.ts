@@ -54,33 +54,15 @@ export async function enqueueCrawlerJob(server: McpServer) {
   const workflowUrl = `${BASE_URL}/api/crawler/workflow`;
   const scheduleId = `crawler-${server.id}`;
   // delete the existing job if it exists
-  const [deleteResult, createResult] = await Promise.allSettled([
-    client.schedules.delete(scheduleId),
-    client.schedules.create({
-      destination: workflowUrl,
-      retries: 3,
-      body: JSON.stringify({ serverId: server.id }),
-      cron: cronExpression,
-      scheduleId,
-      delay: 3600, // 1 hour
-    }),
-  ]);
-
-  // Log any errors but don't throw - delete might fail if schedule doesn't exist
-  if (deleteResult.status === "rejected") {
-    console.warn(
-      `Failed to delete existing schedule ${scheduleId}:`,
-      deleteResult.reason
-    );
-  }
-
-  if (createResult.status === "rejected") {
-    console.error(
-      `Failed to create schedule ${scheduleId}:`,
-      createResult.reason
-    );
-    throw createResult.reason;
-  }
+  await client.schedules.delete(scheduleId);
+  await client.schedules.create({
+    destination: workflowUrl,
+    retries: 3,
+    body: JSON.stringify({ serverId: server.id }),
+    cron: cronExpression,
+    scheduleId,
+    delay: 3600, // 1 hour
+  });
 }
 
 export async function deleteCrawlerJob(server: McpServer) {
