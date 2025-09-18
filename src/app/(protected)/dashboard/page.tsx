@@ -6,6 +6,7 @@ import {
 } from "@/lib/db/queries/mcp_queries";
 import { redirect } from "next/navigation";
 import { McpServersPageClient } from "./components/McpServersPageClient";
+import { categories } from "@/config/categories";
 
 interface SearchParams {
   category?: string;
@@ -65,14 +66,6 @@ export default async function DashboardPage({
   }
 
   // Fetch servers by category for tab counts (simplified for now)
-  const categories = [
-    "crypto",
-    "finance",
-    "language",
-    "networking",
-    "security",
-    "storage",
-  ];
   const serversByCategory: Record<string, any> = {};
 
   // For performance, we'll fetch category counts in parallel but with smaller limits

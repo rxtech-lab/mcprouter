@@ -76,7 +76,7 @@ export function UsePopover({
               Use {server.name}
               {server.version && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
-                  v{server.version}
+                  v{server.version.replace(/^v/, "")}
                 </span>
               )}
             </h3>
@@ -185,7 +185,7 @@ export function UsePopover({
                               ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                               : method === "none"
                                 ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                : "bg-secondary text-secondary-foreground",
+                                : "bg-secondary text-secondary-foreground"
                           )}
                         >
                           {method === "apiKey" && <Lock className="h-3 w-3" />}

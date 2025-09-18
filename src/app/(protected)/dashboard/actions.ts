@@ -110,7 +110,7 @@ export interface ActionResult<T = unknown> {
 }
 
 export async function createMcpServerAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult<{ id: string; name: string }>> {
   try {
     const session = await auth();
@@ -179,7 +179,7 @@ export async function createMcpServerAction(
 }
 
 export async function updateMcpServerAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult<void>> {
   try {
     const session = await auth();
@@ -245,7 +245,7 @@ export async function updateMcpServerAction(
 }
 
 export async function deleteMcpServerAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult<void>> {
   try {
     const session = await auth();
@@ -281,7 +281,7 @@ export async function deleteMcpServerAction(
 }
 
 export async function toggleMcpServerPublicStatusAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult<void>> {
   try {
     const session = await auth();

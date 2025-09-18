@@ -216,7 +216,8 @@ export function McpServerCard({
             </Badge>
           )}
           <Badge variant="outline" className="text-xs">
-            <GitBranchIcon className="h-3 w-3 mr-1" />v{server.version}
+            <GitBranchIcon className="h-3 w-3 mr-1" />v
+            {server.version?.replace(/^v/, "")}
           </Badge>
           <Badge
             variant={server.isPublic ? "default" : "secondary"}

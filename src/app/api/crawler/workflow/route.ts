@@ -22,12 +22,13 @@ export const { POST } = serve<{ serverId: string }>(async (context) => {
         .update(mcpServers)
         .set({
           version: githubInfo.currentVersion,
+          description: githubInfo.readme,
           updatedAt: new Date(),
         })
         .where(eq(mcpServers.id, serverId));
 
       console.log(
-        `Updated server ${serverId} version to ${githubInfo.currentVersion}`
+        `Updated server ${serverId} version to ${githubInfo.currentVersion}`,
       );
     }
   });
@@ -48,7 +49,7 @@ export const { POST } = serve<{ serverId: string }>(async (context) => {
         .values(changelogRecords)
         .onConflictDoNothing();
       console.log(
-        `Inserted ${changelogRecords.length} changelogs for server ${serverId}`
+        `Inserted ${changelogRecords.length} changelogs for server ${serverId}`,
       );
     }
   });

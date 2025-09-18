@@ -1,9 +1,11 @@
 import { getPublicMcpServerDetail } from "@/app/actions/mcp-actions";
 import { auth } from "@/auth";
+import { Badge } from "@/components/ui/badge";
 import { getApiKey } from "@/lib/db/queries/key_queries";
 import { generateUrlWithApiKey } from "@/lib/server-utils";
 import { cn } from "@/lib/utils";
 import {
+  Book,
   Calendar,
   Download,
   ExternalLink,
@@ -11,15 +13,12 @@ import {
   Globe,
   Info,
   Lock,
-  Book,
   Tag,
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { BackButton } from "./InteractiveElements";
-import { VersionHistory } from "./VersionHistory";
 import { UsePopoverClient } from "./UsePopoverClient";
-import { Badge } from "@/components/ui/badge";
+import { VersionHistory } from "./VersionHistory";
 
 interface ServerPageProps {
   params: Promise<{
@@ -103,7 +102,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                   </h1>
                   {server.version && (
                     <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium">
-                      v{server.version}
+                      v{server.version?.replace(/^v/, "")}
                     </span>
                   )}
                 </div>
@@ -155,15 +154,12 @@ export default async function ServerPage({ params }: ServerPageProps) {
                     <Book className="h-4 w-4 ml-4" />
                     <p className="text-black font-semibold ml-2">Readme</p>
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 prose prose-stone dark:prose-invert max-w-none">
                     <ReactMarkdown>{server.description}</ReactMarkdown>
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Version History */}
-            <VersionHistory changelogs={server.changelogs} />
           </div>
 
           {/* Sidebar */}
@@ -213,7 +209,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                                 ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                                 : method === "none"
                                   ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                  : "bg-secondary text-secondary-foreground",
+                                  : "bg-secondary text-secondary-foreground"
                             )}
                           >
                             {method === "apiKey" && (
@@ -266,6 +262,9 @@ export default async function ServerPage({ params }: ServerPageProps) {
               </div>
             )}
 
+            {/* Version History */}
+            <VersionHistory changelogs={server.changelogs} />
+
             {/* Links */}
             {(server.github ||
               (server.socialLinks &&
@@ -303,7 +302,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                             {getSocialIcon(platform)}
                             {platform}
                           </a>
-                        ),
+                        )
                     )}
                 </div>
               </div>

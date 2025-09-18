@@ -256,7 +256,7 @@ export async function getMcpServerById(id: string, userId: string) {
 export async function updateMcpServer(
   id: string,
   userId: string,
-  data: UpdateMcpServerData,
+  data: UpdateMcpServerData
 ) {
   const [updatedMcpServer] = await db
     .update(mcpServers)
@@ -291,7 +291,7 @@ export async function deleteMcpServer(id: string, userId: string) {
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function listMcpServers(
-  options: ListMcpServersOptions,
+  options: ListMcpServersOptions
 ): Promise<PaginatedMcpServers> {
   const { userId, category, cursor, limit = 20 } = options;
 
@@ -304,7 +304,7 @@ export async function listMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor)),
+      lt(mcpServers.createdAt, new Date(cursor))
     )!;
   }
 
@@ -340,7 +340,7 @@ export async function listMcpServersByCategory(
   userId: string,
   category: McpServerCategory,
   cursor?: string,
-  limit = 20,
+  limit = 20
 ): Promise<PaginatedMcpServers> {
   return listMcpServers({ userId, category, cursor, limit });
 }
@@ -351,7 +351,7 @@ export async function listMcpServersByCategory(
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function searchMcpServers(
-  options: SearchMcpServersOptions,
+  options: SearchMcpServersOptions
 ): Promise<PaginatedMcpServers> {
   const { userId, query, category, cursor, limit = 20 } = options;
 
@@ -361,8 +361,8 @@ export async function searchMcpServers(
     eq(mcpServers.createdBy, userId),
     or(
       ilike(mcpServers.name, searchPattern),
-      ilike(mcpServers.description, searchPattern),
-    ),
+      ilike(mcpServers.description, searchPattern)
+    )
   )!;
 
   if (category) {
@@ -372,7 +372,7 @@ export async function searchMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor)),
+      lt(mcpServers.createdAt, new Date(cursor))
     )!;
   }
 
@@ -448,12 +448,16 @@ export async function createChangelog(data: CreateChangelogData) {
  * @param mcpServerId - The MCP server ID to get changelogs for
  * @returns Promise resolving to an array of changelogs
  */
-export async function getChangelogsByServerId(mcpServerId: string) {
+export async function getChangelogsByServerId(
+  mcpServerId: string,
+  limit: number = 1
+) {
   const results = await db
     .select()
     .from(changelogs)
     .where(eq(changelogs.mcpServerId, mcpServerId))
-    .orderBy(desc(changelogs.createdAt));
+    .orderBy(desc(changelogs.createdAt))
+    .limit(limit);
 
   return results;
 }
@@ -484,7 +488,7 @@ export async function getChangelogById(id: string, mcpServerId: string) {
 export async function updateChangelog(
   id: string,
   mcpServerId: string,
-  data: UpdateChangelogData,
+  data: UpdateChangelogData
 ) {
   const [updatedChangelog] = await db
     .update(changelogs)
@@ -549,7 +553,7 @@ export interface McpServerWithChangelogs {
  */
 export async function getMcpServerDetailWithChangelogs(
   id: string,
-  userId: string,
+  userId: string
 ): Promise<McpServerWithChangelogs | null> {
   // Get the MCP server
   const mcpServer = await getMcpServerById(id, userId);
@@ -573,7 +577,7 @@ export async function getMcpServerDetailWithChangelogs(
  * @returns Promise resolving to the MCP server with changelogs or null if not found
  */
 export async function getPublicMcpServerDetailWithChangelogs(
-  id: string,
+  id: string
 ): Promise<McpServerWithChangelogs | null> {
   // Get the MCP server (public version - no user check)
   const [mcpServer] = await db
@@ -627,7 +631,7 @@ export interface SearchPublicMcpServersOptions {
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function listPublicMcpServers(
-  options: ListPublicMcpServersOptions = {},
+  options: ListPublicMcpServersOptions = {}
 ): Promise<PaginatedMcpServers> {
   const { category, cursor, limit = 20 } = options;
 
@@ -640,7 +644,7 @@ export async function listPublicMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor)),
+      lt(mcpServers.createdAt, new Date(cursor))
     )!;
   }
 
@@ -670,7 +674,7 @@ export async function listPublicMcpServers(
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function searchPublicMcpServers(
-  options: SearchPublicMcpServersOptions,
+  options: SearchPublicMcpServersOptions
 ): Promise<PaginatedMcpServers> {
   const { query, category, cursor, limit = 20 } = options;
 
@@ -680,8 +684,8 @@ export async function searchPublicMcpServers(
     eq(mcpServers.isPublic, true),
     or(
       ilike(mcpServers.name, searchPattern),
-      ilike(mcpServers.description, searchPattern),
-    ),
+      ilike(mcpServers.description, searchPattern)
+    )
   )!;
 
   if (category) {
@@ -691,7 +695,7 @@ export async function searchPublicMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor)),
+      lt(mcpServers.createdAt, new Date(cursor))
     )!;
   }
 
