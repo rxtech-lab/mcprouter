@@ -8,8 +8,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
 interface VersionHistoryProps {
+  serverId: string;
   changelogs: Array<{
     id: string;
     version: string;
@@ -23,12 +25,12 @@ interface VersionHistoryProps {
 /**
  * Client component for version history and changelog display
  */
-export function VersionHistory({ changelogs }: VersionHistoryProps) {
+export function VersionHistory({ serverId, changelogs }: VersionHistoryProps) {
   // Get unique versions from changelogs, sorted by date
   const versions = changelogs
     .sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
     .map((changelog) => changelog.version);
 
@@ -38,7 +40,12 @@ export function VersionHistory({ changelogs }: VersionHistoryProps) {
 
   return (
     <div className="bg-card border rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4">Version History</h3>
+      <Link
+        href={`/servers/${serverId}/version-history`}
+        className="text-lg font-semibold mb-4 hover:underline"
+      >
+        Version History
+      </Link>
       <div className="space-y-2">
         {versions.map((version) => {
           const changelog = changelogs.find((c) => c.version === version);
@@ -55,7 +62,7 @@ export function VersionHistory({ changelogs }: VersionHistoryProps) {
                     </span>
                     <span className="text-sm opacity-75">
                       {new Date(
-                        changelog?.createdAt || ""
+                        changelog?.createdAt || "",
                       ).toLocaleDateString()}
                     </span>
                   </div>

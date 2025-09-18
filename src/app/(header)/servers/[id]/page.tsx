@@ -130,6 +130,11 @@ export default async function ServerPage({ params }: ServerPageProps) {
           </div>
         </div>
 
+        {/* Version History - Mobile Only */}
+        <div className="lg:hidden mb-6">
+          <VersionHistory serverId={server.id} changelogs={server.changelogs} />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
@@ -209,7 +214,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                                 ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                                 : method === "none"
                                   ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                  : "bg-secondary text-secondary-foreground"
+                                  : "bg-secondary text-secondary-foreground",
                             )}
                           >
                             {method === "apiKey" && (
@@ -262,8 +267,13 @@ export default async function ServerPage({ params }: ServerPageProps) {
               </div>
             )}
 
-            {/* Version History */}
-            <VersionHistory changelogs={server.changelogs} />
+            {/* Version History - Desktop Only */}
+            <div className="hidden lg:block">
+              <VersionHistory
+                serverId={server.id}
+                changelogs={server.changelogs}
+              />
+            </div>
 
             {/* Links */}
             {(server.github ||
@@ -302,7 +312,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                             {getSocialIcon(platform)}
                             {platform}
                           </a>
-                        )
+                        ),
                     )}
                 </div>
               </div>

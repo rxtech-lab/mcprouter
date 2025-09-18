@@ -1,6 +1,6 @@
 import { db } from "../index";
 import { mcpServers, changelogs } from "../schema";
-import { eq, and, desc, lt, SQL, ilike, or } from "drizzle-orm";
+import { eq, and, desc, lt, gt, asc, SQL, ilike, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 /**
@@ -256,7 +256,7 @@ export async function getMcpServerById(id: string, userId: string) {
 export async function updateMcpServer(
   id: string,
   userId: string,
-  data: UpdateMcpServerData
+  data: UpdateMcpServerData,
 ) {
   const [updatedMcpServer] = await db
     .update(mcpServers)
@@ -291,7 +291,7 @@ export async function deleteMcpServer(id: string, userId: string) {
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function listMcpServers(
-  options: ListMcpServersOptions
+  options: ListMcpServersOptions,
 ): Promise<PaginatedMcpServers> {
   const { userId, category, cursor, limit = 20 } = options;
 
@@ -304,7 +304,7 @@ export async function listMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor))
+      lt(mcpServers.createdAt, new Date(cursor)),
     )!;
   }
 
@@ -340,7 +340,7 @@ export async function listMcpServersByCategory(
   userId: string,
   category: McpServerCategory,
   cursor?: string,
-  limit = 20
+  limit = 20,
 ): Promise<PaginatedMcpServers> {
   return listMcpServers({ userId, category, cursor, limit });
 }
@@ -351,7 +351,7 @@ export async function listMcpServersByCategory(
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function searchMcpServers(
-  options: SearchMcpServersOptions
+  options: SearchMcpServersOptions,
 ): Promise<PaginatedMcpServers> {
   const { userId, query, category, cursor, limit = 20 } = options;
 
@@ -361,8 +361,8 @@ export async function searchMcpServers(
     eq(mcpServers.createdBy, userId),
     or(
       ilike(mcpServers.name, searchPattern),
-      ilike(mcpServers.description, searchPattern)
-    )
+      ilike(mcpServers.description, searchPattern),
+    ),
   )!;
 
   if (category) {
@@ -372,7 +372,7 @@ export async function searchMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor))
+      lt(mcpServers.createdAt, new Date(cursor)),
     )!;
   }
 
@@ -450,7 +450,7 @@ export async function createChangelog(data: CreateChangelogData) {
  */
 export async function getChangelogsByServerId(
   mcpServerId: string,
-  limit: number = 1
+  limit: number = 1,
 ) {
   const results = await db
     .select()
@@ -488,7 +488,7 @@ export async function getChangelogById(id: string, mcpServerId: string) {
 export async function updateChangelog(
   id: string,
   mcpServerId: string,
-  data: UpdateChangelogData
+  data: UpdateChangelogData,
 ) {
   const [updatedChangelog] = await db
     .update(changelogs)
@@ -553,7 +553,7 @@ export interface McpServerWithChangelogs {
  */
 export async function getMcpServerDetailWithChangelogs(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<McpServerWithChangelogs | null> {
   // Get the MCP server
   const mcpServer = await getMcpServerById(id, userId);
@@ -577,7 +577,7 @@ export async function getMcpServerDetailWithChangelogs(
  * @returns Promise resolving to the MCP server with changelogs or null if not found
  */
 export async function getPublicMcpServerDetailWithChangelogs(
-  id: string
+  id: string,
 ): Promise<McpServerWithChangelogs | null> {
   // Get the MCP server (public version - no user check)
   const [mcpServer] = await db
@@ -631,7 +631,7 @@ export interface SearchPublicMcpServersOptions {
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function listPublicMcpServers(
-  options: ListPublicMcpServersOptions = {}
+  options: ListPublicMcpServersOptions = {},
 ): Promise<PaginatedMcpServers> {
   const { category, cursor, limit = 20 } = options;
 
@@ -644,7 +644,7 @@ export async function listPublicMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor))
+      lt(mcpServers.createdAt, new Date(cursor)),
     )!;
   }
 
@@ -674,7 +674,7 @@ export async function listPublicMcpServers(
  * @returns Promise resolving to paginated MCP servers response
  */
 export async function searchPublicMcpServers(
-  options: SearchPublicMcpServersOptions
+  options: SearchPublicMcpServersOptions,
 ): Promise<PaginatedMcpServers> {
   const { query, category, cursor, limit = 20 } = options;
 
@@ -684,8 +684,8 @@ export async function searchPublicMcpServers(
     eq(mcpServers.isPublic, true),
     or(
       ilike(mcpServers.name, searchPattern),
-      ilike(mcpServers.description, searchPattern)
-    )
+      ilike(mcpServers.description, searchPattern),
+    ),
   )!;
 
   if (category) {
@@ -695,7 +695,7 @@ export async function searchPublicMcpServers(
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(mcpServers.createdAt, new Date(cursor))
+      lt(mcpServers.createdAt, new Date(cursor)),
     )!;
   }
 
@@ -716,5 +716,123 @@ export async function searchPublicMcpServers(
     data: data as PaginatedMcpServers["data"],
     nextCursor,
     hasMore,
+  };
+}
+
+/**
+ * Paginated response for changelogs
+ */
+export interface PaginatedChangelogs {
+  /** Array of changelog entries */
+  data: ChangelogData[];
+  /** Cursor for next page */
+  nextCursor?: string;
+  /** Cursor for previous page */
+  prevCursor?: string;
+  /** Whether there are more items after this page */
+  hasMore: boolean;
+  /** Whether there are items before this page */
+  hasPrev: boolean;
+}
+
+/**
+ * Options for listing changelogs with cursor-based pagination
+ */
+export interface ListChangelogsOptions {
+  /** MCP server ID to get changelogs for */
+  mcpServerId: string;
+  /** Cursor for pagination (ISO date string) */
+  cursor?: string;
+  /** Direction of pagination */
+  direction?: "next" | "prev";
+  /** Maximum number of changelogs to return (default: 10) */
+  limit?: number;
+}
+
+/**
+ * Retrieves changelogs for a specific MCP server with cursor-based pagination
+ * @param options - The pagination options
+ * @returns Promise resolving to paginated changelogs response
+ */
+export async function getPaginatedChangelogsByServerId(
+  options: ListChangelogsOptions,
+): Promise<PaginatedChangelogs> {
+  const { mcpServerId, cursor, direction = "next", limit = 10 } = options;
+
+  let whereConditions: SQL<unknown> = eq(changelogs.mcpServerId, mcpServerId);
+
+  if (cursor) {
+    const cursorDate = new Date(cursor);
+    if (direction === "next") {
+      whereConditions = and(
+        whereConditions,
+        lt(changelogs.createdAt, cursorDate),
+      )!;
+    } else {
+      whereConditions = and(
+        whereConditions,
+        gt(changelogs.createdAt, cursorDate),
+      )!;
+    }
+  }
+
+  // For 'prev' direction, we need to reverse the order and then reverse the results
+  const orderDirection = direction === "prev" ? asc : desc;
+
+  const results = await db
+    .select()
+    .from(changelogs)
+    .where(whereConditions)
+    .orderBy(orderDirection(changelogs.createdAt))
+    .limit(limit + 1);
+
+  // If going backwards, reverse the results to maintain chronological order
+  const sortedResults = direction === "prev" ? results.reverse() : results;
+
+  const hasMore = sortedResults.length > limit;
+  const data = hasMore ? sortedResults.slice(0, limit) : sortedResults;
+
+  // Check if there are more items in the opposite direction
+  let hasNext = false;
+  let hasPrev = false;
+
+  if (data.length > 0) {
+    // Check for next page (older items)
+    const nextCheck = await db
+      .select({ id: changelogs.id })
+      .from(changelogs)
+      .where(
+        and(
+          eq(changelogs.mcpServerId, mcpServerId),
+          lt(changelogs.createdAt, data[data.length - 1]!.createdAt),
+        ),
+      )
+      .limit(1);
+    hasNext = nextCheck.length > 0;
+
+    // Check for previous page (newer items) - only if we have a cursor (not on first page)
+    if (cursor) {
+      const prevCheck = await db
+        .select({ id: changelogs.id })
+        .from(changelogs)
+        .where(
+          and(
+            eq(changelogs.mcpServerId, mcpServerId),
+            gt(changelogs.createdAt, data[0]!.createdAt),
+          ),
+        )
+        .limit(1);
+      hasPrev = prevCheck.length > 0;
+    }
+  }
+
+  return {
+    data,
+    nextCursor: hasNext
+      ? data[data.length - 1]?.createdAt.toISOString()
+      : undefined,
+    prevCursor: hasPrev ? data[0]?.createdAt.toISOString() : undefined,
+    hasMore: hasNext,
+    hasPrev,
   };
 }
