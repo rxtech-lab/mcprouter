@@ -204,55 +204,6 @@ export function McpServerCard({ server, onShowUrl }: McpServerCardProps) {
               </span>
             )}
           </div>
-
-          {/* URL Section - Sticky at top */}
-          {server.url && isRemote && (
-            <div className="border-t pt-3">
-              <div className="sticky top-0 bg-card z-10 flex items-center justify-between mb-2 pb-2 border-b border-border/50">
-                <span className="text-xs font-medium text-muted-foreground">
-                  Remote URL
-                </span>
-                <button
-                  onClick={handleShowUrl}
-                  className={cn(
-                    "inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md transition-colors",
-                    requiresApiKey
-                      ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
-                      : "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
-                  )}
-                >
-                  {requiresApiKey ? (
-                    <>
-                      <Lock className="h-3 w-3" />
-                      Requires API Key
-                    </>
-                  ) : (
-                    <>
-                      {isUrlVisible ? (
-                        <EyeOff className="h-3 w-3" />
-                      ) : (
-                        <Eye className="h-3 w-3" />
-                      )}
-                      {isUrlVisible ? "Hide URL" : "Show URL"}
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {isUrlVisible && !requiresApiKey && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-muted rounded-md p-2"
-                >
-                  <code className="text-xs text-muted-foreground break-all">
-                    {displayUrl}
-                  </code>
-                </motion.div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </motion.div>

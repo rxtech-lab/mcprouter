@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { renderUrl } from "@/lib/url";
 
 interface UsePopoverProps {
   server: {
@@ -57,6 +58,7 @@ export function UsePopover({
 
   // Determine which tab to show by default
   const defaultTab = isRemote ? "remote" : "download";
+  const context = { version: server.version! };
 
   return (
     <Popover>
@@ -147,13 +149,15 @@ export function UsePopover({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 p-2 bg-muted/50 border rounded-md">
                         <code className="flex-1 text-xs font-mono break-all text-muted-foreground">
-                          {url || server.url}
+                          {renderUrl(url || server.url || "", context)}
                         </code>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            copyToClipboard(url || server.url || "")
+                            copyToClipboard(
+                              renderUrl(url || server.url || "", context)
+                            )
                           }
                           className="shrink-0"
                         >
@@ -185,7 +189,7 @@ export function UsePopover({
                               ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                               : method === "none"
                                 ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                : "bg-secondary text-secondary-foreground",
+                                : "bg-secondary text-secondary-foreground"
                           )}
                         >
                           {method === "apiKey" && <Lock className="h-3 w-3" />}
@@ -208,7 +212,9 @@ export function UsePopover({
                     {server.downloadLinks?.map((download) => (
                       <a
                         key={download.platform}
-                        href={download.link}
+                        href={renderUrl(download.link, {
+                          version: server.version!,
+                        })}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full flex items-center justify-between p-2 border border-border rounded-md hover:bg-accent transition-colors group text-sm"
