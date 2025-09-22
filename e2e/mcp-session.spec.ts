@@ -175,12 +175,12 @@ test.describe("MCP Session Authentication API", () => {
     // Create a new user that's not verified
     const unverifiedUser = await createTestUser(
       "unverified@example.com",
-      "Unverified User"
+      "Unverified User",
     );
     const unverifiedUserKey = await createTestKey(
       unverifiedUser.id,
       "user",
-      "Unverified User Key"
+      "Unverified User Key",
     );
 
     const response = await request.post("/api/auth/mcp/session", {
@@ -204,12 +204,12 @@ test.describe("MCP Session Authentication API", () => {
     const otherServerKey = await createTestKey(
       otherUser.id,
       "server",
-      "Other Server Key"
+      "Other Server Key",
     );
     const otherUserKey = await createTestKey(
       otherUser.id,
       "user",
-      "Other User Key"
+      "Other User Key",
     );
 
     const response = await request.post("/api/auth/mcp/session", {
@@ -235,7 +235,7 @@ test.describe("MCP Session Authentication API", () => {
     const otherUserKey = await createTestKey(
       otherUser.id,
       "user",
-      "Other User Key"
+      "Other User Key",
     );
 
     // Use server key from first user and user key from second user
