@@ -156,7 +156,7 @@ export function UsePopover({
                           variant="outline"
                           onClick={() =>
                             copyToClipboard(
-                              renderUrl(url || server.url || "", context)
+                              renderUrl(url || server.url || "", context),
                             )
                           }
                           className="shrink-0"
@@ -189,7 +189,7 @@ export function UsePopover({
                               ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                               : method === "none"
                                 ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                : "bg-secondary text-secondary-foreground"
+                                : "bg-secondary text-secondary-foreground",
                           )}
                         >
                           {method === "apiKey" && <Lock className="h-3 w-3" />}

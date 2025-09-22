@@ -17,7 +17,7 @@ export function GoogleButton({ mode, disabled }: GoogleButtonProps) {
     setIsLoading(true);
     try {
       await signIn("google", {
-        callbackUrl: "/protected",
+        callbackUrl: "/",
         redirect: true,
       });
     } catch (error) {

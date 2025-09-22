@@ -10,13 +10,19 @@ import {
   getPublicMcpServers,
   searchPublicMcpServers,
 } from "@/app/actions/mcp-actions";
+import type { PaginatedMcpServers } from "@/lib/db/queries/mcp_queries";
 
 interface McpServerGridProps {
   searchQuery?: string;
   category?: string;
+  initialData?: PaginatedMcpServers;
 }
 
-export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
+export function McpServerGrid({
+  searchQuery,
+  category,
+  initialData,
+}: McpServerGridProps) {
   const [isSearching, setIsSearching] = useState(false);
 
   // Determine if we're searching or just listing
@@ -58,6 +64,12 @@ export function McpServerGrid({ searchQuery, category }: McpServerGridProps) {
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    initialData: initialData
+      ? {
+          pages: [initialData],
+          pageParams: [undefined],
+        }
+      : undefined,
   });
 
   // Handle search state

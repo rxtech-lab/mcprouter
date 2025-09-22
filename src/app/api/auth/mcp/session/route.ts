@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!serverKey) {
       return NextResponse.json(
         { error: "Server key is required in x-api-key header" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
           error: "Invalid request body",
           details: validationResult.error.issues,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (!serverKeyRecord || serverKeyRecord.type !== "server") {
       return NextResponse.json(
         { error: "Invalid server key" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     console.error("MCP session authentication error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

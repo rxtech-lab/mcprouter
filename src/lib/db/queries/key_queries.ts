@@ -94,7 +94,7 @@ export function hashKey(key: string): string {
  * @returns Promise resolving to the created key with raw key value
  */
 export async function createKey(
-  data: CreateKeyData
+  data: CreateKeyData,
 ): Promise<CreateKeyResponse> {
   const id = nanoid();
   const rawKey = generateRandomKey();
@@ -170,19 +170,19 @@ export async function getKeyWithValueById(id: string, userId: string) {
  * @returns Promise resolving to paginated keys response
  */
 export async function listKeys(
-  options: ListKeysOptions
+  options: ListKeysOptions,
 ): Promise<PaginatedKeys> {
   const { userId, type, cursor, limit = 20 } = options;
 
   let whereConditions: SQL<unknown> = and(
     eq(keys.createdBy, userId),
-    eq(keys.type, type)
+    eq(keys.type, type),
   )!;
 
   if (cursor) {
     whereConditions = and(
       whereConditions,
-      lt(keys.createdAt, new Date(cursor))
+      lt(keys.createdAt, new Date(cursor)),
     )!;
   }
 

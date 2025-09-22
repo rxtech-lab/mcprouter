@@ -1,6 +1,14 @@
 import { getPublicMcpServerDetail } from "@/app/actions/mcp-actions";
 import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { getApiKey } from "@/lib/db/queries/key_queries";
 import { generateUrlWithApiKey } from "@/lib/server-utils";
 import { cn } from "@/lib/utils";
@@ -15,6 +23,7 @@ import {
   Lock,
   Tag,
 } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { UsePopoverClient } from "./UsePopoverClient";
@@ -73,7 +82,22 @@ export default async function ServerPage({ params }: ServerPageProps) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{server.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       {/* Hero Section */}
       <div className="space-y-6 mb-4">
         {/* Header Row - Avatar, Name, Version, and Use Button */}
@@ -100,7 +124,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                   {server.name}
                 </h1>
                 {server.version && (
-                  <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium">
+                  <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium sticky top-0 z-50">
                     v{server.version?.replace(/^v/, "")}
                   </span>
                 )}
@@ -213,7 +237,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                               ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                               : method === "none"
                                 ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                                : "bg-secondary text-secondary-foreground",
+                                : "bg-secondary text-secondary-foreground"
                           )}
                         >
                           {method === "apiKey" && <Lock className="h-3 w-3" />}
@@ -309,7 +333,7 @@ export default async function ServerPage({ params }: ServerPageProps) {
                           {getSocialIcon(platform)}
                           {platform}
                         </a>
-                      ),
+                      )
                   )}
               </div>
             </div>

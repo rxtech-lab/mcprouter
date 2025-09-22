@@ -1,6 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import ReactMarkdown from "react-markdown";
 import {
   getPaginatedChangelogs,
@@ -51,41 +59,30 @@ export default async function VersionHistoryPage({
   } = changelogData;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <Link
-          href={`/servers/${id}`}
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to {server.name}
-        </Link>
-
-        <div className="flex items-center gap-4">
-          {server.image?.logo ? (
-            <img
-              src={server.image.logo}
-              alt={`${server.name} logo`}
-              className="w-12 h-12 rounded-lg object-cover border shadow-sm"
-            />
-          ) : (
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-sm">
-              {server.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Version History
-            </h1>
-            <p className="text-lg text-muted-foreground">{server.name}</p>
-          </div>
-        </div>
-      </div>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/servers/${id}`}>{server.name}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Version History</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       {/* Content */}
-      <div className="max-w-4xl">
+      <div>
         {changelogs.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
@@ -96,15 +93,17 @@ export default async function VersionHistoryPage({
           <div className="space-y-8">
             {changelogs.map((changelog) => (
               <div className="flex flex-row lg:gap-20" key={changelog.id}>
-                <div className="flex flex-col gap-2">
-                  <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium">
-                    v{changelog.version.replace(/^v/, "")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {new Date(changelog.createdAt).toLocaleDateString()}
-                  </span>
+                <div className="w-[90px]">
+                  <div className="sticky top-22 z-5 flex-col flex gap-2">
+                    <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium">
+                      v{changelog.version.replace(/^v/, "")}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(changelog.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
-                <div className="border rounded-lg bg-card shadow-sm flex-1">
+                <div className="border rounded-lg bg-card flex-1">
                   {/* Version Header */}
 
                   {/* Changelog Content */}
