@@ -4,11 +4,11 @@ import VerificationEmail from "./emails/VerificationEmail";
 
 export async function sendVerificationEmail(
   email: string,
-  verificationUrl: string,
+  verificationUrl: string
 ) {
   if (process.env.IS_PLAYWRIGHT_TEST === "true") {
     console.log(
-      `[TEST MODE] Skipping email send to ${email} with URL: ${verificationUrl}`,
+      `[TEST MODE] Skipping email send to ${email} with URL: ${verificationUrl}`
     );
     return { id: "test-email-id" };
   }

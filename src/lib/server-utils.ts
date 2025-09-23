@@ -54,7 +54,7 @@ export interface McpServerData {
 export function generateUrlWithApiKey(
   baseUrl: string,
   apiKey: string,
-  version?: string | null,
+  version?: string | null
 ): string {
   let url = baseUrl;
 
@@ -67,7 +67,7 @@ export function generateUrlWithApiKey(
   const urlObj = new URL(url);
 
   // Add API key as query parameter
-  urlObj.searchParams.set("api_key", apiKey);
+  urlObj.searchParams.set("api-key", apiKey);
 
   return urlObj.toString();
 }
@@ -80,7 +80,7 @@ export function generateUrlWithApiKey(
  */
 export function constructMcpServerUrl(
   mcpServer: McpServerData,
-  userApiKey: string,
+  userApiKey: string
 ): string | null {
   if (!mcpServer.url) {
     return null;
@@ -112,7 +112,7 @@ export function constructMcpServerUrl(
 export async function validateApiKeyForServer(
   serverId: string,
   userId: string,
-  keyId: string,
+  keyId: string
 ): Promise<boolean> {
   try {
     // Get the key to verify ownership and type

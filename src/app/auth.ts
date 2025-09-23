@@ -92,17 +92,6 @@ export async function signUpWithEmail(email: string) {
   }
 }
 
-export async function signInWithGoogle(redirectTo: string) {
-  try {
-    await signIn("google", { redirectTo: redirectTo });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw new Error("Failed to sign in with Google");
-    }
-    throw error;
-  }
-}
-
 export async function verifyEmailToken(token: string) {
   try {
     // Get the verification token from Redis
