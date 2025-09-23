@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 interface GoogleButtonProps {
   mode: "signin" | "signup";
@@ -12,13 +13,14 @@ interface GoogleButtonProps {
 
 export function GoogleButton({ mode, disabled }: GoogleButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo") || "/";
 
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     try {
       await signIn("google", {
-        callbackUrl: "/",
-        redirect: true,
+        redirectTo: redirectTo,
       });
     } catch (error) {
       console.error("Google authentication error:", error);

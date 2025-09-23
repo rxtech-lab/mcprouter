@@ -66,7 +66,7 @@ export async function signUpWithEmail(email: string) {
 
     if (existingUser?.emailVerified) {
       throw new Error(
-        "An account with this email already exists. Please sign in instead.",
+        "An account with this email already exists. Please sign in instead."
       );
     }
 
@@ -92,9 +92,9 @@ export async function signUpWithEmail(email: string) {
   }
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(redirectTo: string) {
   try {
-    await signIn("google", { redirectTo: "/protected" });
+    await signIn("google", { redirectTo: redirectTo });
   } catch (error) {
     if (error instanceof AuthError) {
       throw new Error("Failed to sign in with Google");
@@ -177,10 +177,10 @@ export async function resendVerificationEmail() {
 
       if (timeSinceLastEmail < cooldownMs) {
         const remainingSeconds = Math.ceil(
-          (cooldownMs - timeSinceLastEmail) / 1000,
+          (cooldownMs - timeSinceLastEmail) / 1000
         );
         throw new Error(
-          `Please wait ${remainingSeconds} seconds before requesting another email`,
+          `Please wait ${remainingSeconds} seconds before requesting another email`
         );
       }
     }
