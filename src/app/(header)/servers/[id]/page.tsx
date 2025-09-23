@@ -101,40 +101,44 @@ export default async function ServerPage({ params }: ServerPageProps) {
       {/* Hero Section */}
       <div className="space-y-6 mb-4">
         {/* Header Row - Avatar, Name, Version, and Use Button */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
             {server.image?.logo ? (
               <img
                 src={server.image.logo}
                 alt={`${server.name} logo`}
-                className="w-4 h-4 rounded-2xl object-cover border shadow-lg"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-cover border shadow-lg flex-shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg sm:text-2xl shadow-lg flex-shrink-0">
                 {server.name.charAt(0).toUpperCase()}
               </div>
             )}
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <h1
                   data-testid="server-detail-title"
-                  className="text-xl font-bold text-foreground"
+                  className="text-lg sm:text-xl font-bold text-foreground truncate"
                 >
                   {server.name}
                 </h1>
-                {server.version && (
-                  <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium sticky top-0 z-50">
-                    v{server.version?.replace(/^v/, "")}
-                  </span>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {server.version && (
+                    <span className="inline-flex items-center px-2 sm:px-3 py-1 text-xs sm:text-sm bg-primary/10 text-primary rounded-full font-medium">
+                      v{server.version?.replace(/^v/, "")}
+                    </span>
+                  )}
+                  <Badge variant="secondary" className="text-xs sm:text-sm">
+                    {server.category}
+                  </Badge>
+                </div>
               </div>
             </div>
-            <Badge variant="secondary">{server.category}</Badge>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-4 sticky top-24 self-start">
+          <div className="flex items-center gap-4 sm:sticky sm:top-24 sm:self-start">
             <UsePopoverClient
               server={{
                 name: server.name,
