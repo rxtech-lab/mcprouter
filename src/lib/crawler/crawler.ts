@@ -29,12 +29,22 @@ export type GitHubInfo = {
 
 const maxConcurrency = 10;
 
-// every 24 hours
-const cronExpression = "0 0 * * *";
+// every 12 hours
+const cronExpression = "0 */12 * * *";
 
-const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : `http://localhost:3000`; // for local development
+export function getBaseUrl() {
+  const isLocalEnv = process.env.VERCEL_ENV === undefined;
+  const isProductionEnv = process.env.VERCEL_ENV === "production";
+  if (isLocalEnv) {
+    return `http://localhost:3000`;
+  }
+
+  if (isProductionEnv) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+
+  return `https://${process.env.VERCEL_URL}`;
+}
 
 /**
  * Enqueue new mcp server to crawl the data from github or update the existing one
@@ -51,7 +61,7 @@ export async function enqueueCrawlerJob(server: McpServer) {
     return;
   }
 
-  const workflowUrl = `${BASE_URL}/api/crawler/workflow?x-vercel-protection-bypass=${process.env.VERCEL_PROTECTION_BYPASS}`;
+  const workflowUrl = `${getBaseUrl()}/api/crawler/workflow?x-vercel-protection-bypass=${process.env.VERCEL_PROTECTION_BYPASS}`;
   const scheduleId = `crawler-${server.id}`;
   // delete the existing job if it exists
   await client.schedules.delete(scheduleId);
@@ -116,7 +126,7 @@ export async function crawlGitHubInfo(serverId: string): Promise<GitHubInfo> {
     // Extract README content
     if (readmeData.status === "fulfilled") {
       readme = Buffer.from(readmeData.value.data.content, "base64").toString(
-        "utf-8",
+        "utf-8"
       );
     }
 
@@ -172,7 +182,7 @@ export async function crawlGitHubInfo(serverId: string): Promise<GitHubInfo> {
   } catch (error) {
     console.error(
       `Failed to crawl GitHub info for ${owner}/${cleanRepo}:`,
-      error,
+      error
     );
     throw error;
   }
