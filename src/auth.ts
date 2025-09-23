@@ -7,9 +7,9 @@ import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { resendVerificationEmail } from "./app/auth";
 import { accounts, authenticators, db, users } from "./lib/db";
 import { getUserByEmail, getUserById } from "./lib/db/queries/user_queries";
+import { sendVerificationEmail } from "./lib/email";
 import { AuthenticatorNotFoundError } from "./lib/errors/auth.error";
 import {
   deleteAuthenticationChallenge,
@@ -17,7 +17,6 @@ import {
   getAuthenticationChallenge,
   getRegistrationChallenge,
 } from "./lib/redis/challenge-queries";
-import { sendVerificationEmail } from "./lib/email";
 import { getVerificationUrl } from "./lib/server-utils";
 
 export const { handlers, signIn, auth, signOut } = NextAuth({
@@ -109,7 +108,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
           deleteRegistrationChallenge(sessionId),
           sendVerificationEmail(
             newUser.email!,
-            await getVerificationUrl(newUser.email!),
+            await getVerificationUrl(newUser.email!)
           ),
         ]);
 
@@ -146,7 +145,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
         // Find the authenticator
         const credentialID = Buffer.from(
           parsedCredential.rawId,
-          "base64url",
+          "base64url"
         ).toString("base64url");
 
         const authenticator = await db
@@ -182,7 +181,7 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
             credentialID: Buffer.from(auth.credentialID, "base64url"),
             credentialPublicKey: Buffer.from(
               auth.credentialPublicKey,
-              "base64url",
+              "base64url"
             ),
             counter: auth.counter,
           },
@@ -214,6 +213,16 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (!user.emailVerified && account?.provider === "google") {
+        // send verification email
+        await sendVerificationEmail(
+          user.email!,
+          await getVerificationUrl(user.email!)
+        );
+      }
+      return true;
+    },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -227,6 +236,8 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
       const user = await getUserById(token.id as string);
       if (user) {
         session.user.emailVerified = user.emailVerified;
+        // if email is not verified, redirect to error page
+
         session.user.role = user.role || "user";
         session.user.id = user.id;
       }
