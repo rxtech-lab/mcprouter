@@ -92,7 +92,10 @@ export default async function VersionHistoryPage({
         ) : (
           <div className="space-y-8">
             {changelogs.map((changelog) => (
-              <div className="flex flex-row lg:gap-20" key={changelog.id}>
+              <div
+                className="flex md:flex-row flex-col lg:gap-20"
+                key={changelog.id}
+              >
                 <div className="w-[90px]">
                   <div className="sticky top-22 z-5 flex-col flex gap-2">
                     <span className="inline-flex items-center px-3 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium">
