@@ -22,7 +22,7 @@ export function Header() {
   const router = useRouter();
 
   const handleSignIn = () => {
-    signIn();
+    signIn("oidc", { callbackUrl: "/dashboard" });
   };
 
   const handleSignOut = () => {
@@ -91,7 +91,7 @@ export function Header() {
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={session.user.image || undefined}
+                          src={undefined}
                           alt={session.user.name || "User"}
                         />
                         <AvatarFallback>
@@ -180,7 +180,7 @@ export function Header() {
                     <div className="flex items-center space-x-3 py-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={session.user.image || undefined}
+                          src={undefined}
                           alt={session.user.name || "User"}
                         />
                         <AvatarFallback>
@@ -188,7 +188,7 @@ export function Header() {
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm font-medium">
-                        {session.user.name || session.user.email}
+                        {session.user.name || "User"}
                       </span>
                     </div>
                     <div className="space-y-1">

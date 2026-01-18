@@ -43,11 +43,12 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "IS_PLAYWRIGHT_TEST=true bun run dev",
+    command: "IS_PLAYWRIGHT_TEST=true IS_E2E_TEST=true bun run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     env: {
       IS_PLAYWRIGHT_TEST: "true",
+      IS_E2E_TEST: "true",
     },
   },
 });

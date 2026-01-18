@@ -1,103 +1,56 @@
-import { AuthCard } from "@/app/components/auth/AuthCard";
-import { ResendVerificationButton } from "@/app/components/auth/ResendVerificationButton";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-interface SignInPageProps {
+interface ErrorPageProps {
   searchParams: Promise<{
     error?: string;
-    email?: string;
-    code?: string;
-    redirectFrom?: string;
   }>;
 }
 
-export default async function ErrorPage({ searchParams }: SignInPageProps) {
-  const { error, email, code, redirectFrom } = await searchParams;
+export default async function ErrorPage({ searchParams }: ErrorPageProps) {
+  const { error } = await searchParams;
 
-  const getErrorMessage = (error: string) => {
-    switch (error) {
-      case "EmailNotVerified":
-        return (
-          <span data-testid="email-not-verified-error">
-            Please verify your email address before signing in. Check your inbox
-            for a verification link.
-          </span>
-        );
+  const getErrorMessage = (errorCode: string | undefined) => {
+    switch (errorCode) {
       case "Configuration":
-        return (
-          <span data-testid="configuration-error">
-            There is a problem with the server configuration. Please try again
-            later.
-          </span>
-        );
+        return "There is a problem with the server configuration. Please try again later.";
       case "AccessDenied":
-        return (
-          <span data-testid="access-denied-error">
-            Access denied. You do not have permission to sign in.
-          </span>
-        );
+        return "Access denied. You do not have permission to sign in.";
       case "Verification":
-        return (
-          <span data-testid="verification-error">
-            The verification link is invalid or has expired. Please request a
-            new one.
-          </span>
-        );
+        return "The verification link is invalid or has expired.";
+      case "OAuthSignin":
+        return "Error occurred while signing in with OAuth. Please try again.";
+      case "OAuthCallback":
+        return "Error occurred during OAuth callback. Please try again.";
+      case "OAuthAccountNotLinked":
+        return "This account is already linked to another user.";
+      case "Callback":
+        return "Error occurred during authentication callback.";
       default:
-        if (code) {
-          switch (code) {
-            case "AuthenticatorNotFound":
-              return (
-                <span data-testid="authenticator-not-found-error">
-                  The authenticator was not found. Please try again.
-                </span>
-              );
-            default:
-              return (
-                <span data-testid="default-error">
-                  An error occurred during sign in. Please try again.
-                </span>
-              );
-          }
-        }
-        return (
-          <span data-testid="default-error">
-            An error occurred during sign in. Please try again.
-          </span>
-        );
+        return "An error occurred during sign in. Please try again.";
     }
   };
 
-  const shouldHideAuthForm = error === "EmailNotVerified";
-
-  if (shouldHideAuthForm) {
-    return (
-      <AuthCard
-        title="Check your email"
-        description="We've sent you a verification link"
-      >
-        <p className="text-center">{getErrorMessage(error)}</p>
-        {error === "EmailNotVerified" && email && (
-          <div className="mt-3 flex justify-center">
-            <ResendVerificationButton email={email} variant="ghost" />
-          </div>
-        )}
-      </AuthCard>
-    );
-  }
-
   return (
-    <AuthCard title="Error" description="An error occurred">
-      <p className="text-center">{getErrorMessage(error || "")}</p>
-      <div className="mt-4 flex justify-center">
-        <Link
-          href={redirectFrom || "/auth/signin"}
-          className="font-bold underline"
-          data-testid="back-to-previous-page"
-        >
-          Back to previous page
-        </Link>
-      </div>
-    </AuthCard>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Authentication Error</CardTitle>
+          <CardDescription>{getErrorMessage(error)}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center">
+          <Button asChild>
+            <Link href="/api/auth/signin/oidc">Try again</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

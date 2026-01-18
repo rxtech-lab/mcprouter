@@ -1,109 +1,21 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import {
   clearDatabase,
-  verifyUserEmail,
   createTestKey,
   createTestUser,
-  getUserByEmail,
+  ensureE2ETestUser,
+  E2E_TEST_USER,
 } from "./utils/database";
 
-// Helper function to setup WebAuthn Virtual Authenticator
-async function setupWebAuthnVirtualAuthenticator(page: Page) {
-  const context = page.context();
-
-  await context.addInitScript(() => {
-    if (!window.PublicKeyCredential) {
-      (window as any).PublicKeyCredential = class {
-        static isUserVerifyingPlatformAuthenticatorAvailable() {
-          return Promise.resolve(true);
-        }
-        static isConditionalMediationAvailable() {
-          return Promise.resolve(true);
-        }
-      };
-    }
-  });
-
-  const cdpSession = await context.newCDPSession(page);
-  await cdpSession.send("WebAuthn.enable");
-
-  const { authenticatorId } = await cdpSession.send(
-    "WebAuthn.addVirtualAuthenticator",
-    {
-      options: {
-        protocol: "ctap2",
-        transport: "internal",
-        hasResidentKey: true,
-        hasUserVerification: true,
-        isUserVerified: true,
-      },
-    },
-  );
-
-  return { cdpSession, authenticatorId };
-}
-
-// Helper function to generate test email
-function generateTestEmail(): string {
-  return `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}@example.com`;
-}
-
-// Helper function for successful sign-in flow
-async function signInSuccessfully(page: Page) {
-  const testEmail = generateTestEmail();
-  // Step 2: Create WebAuthn credential by going through signup flow first
-  await page.goto("/auth/signup");
-  await page.getByTestId("email-input").fill(testEmail);
-  await page.getByTestId("passkey-signup-button").click();
-  await page.waitForLoadState("networkidle");
-  await verifyUserEmail(testEmail);
-
-  await page.waitForTimeout(1000);
-  await page.reload();
-  // Should be redirected to dashboard since user is verified
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-  // get the user id from the database
-  const user = await getUserByEmail(testEmail);
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return { testEmail, userId: user.id };
-}
-
 test.describe("Dashboard Keys Management", () => {
-  let cdpSession: any;
-  let authenticatorId: string;
-
   test.beforeEach(async ({ page }) => {
-    // Clear database before each test
+    // Clear database and ensure the E2E test user exists
     await clearDatabase();
-
-    // Setup WebAuthn Virtual Authenticator
-    const webauthn = await setupWebAuthnVirtualAuthenticator(page);
-    cdpSession = webauthn.cdpSession;
-    authenticatorId = webauthn.authenticatorId;
-  });
-
-  test.afterEach(async () => {
-    // Clean up the virtual authenticator
-    if (cdpSession && authenticatorId) {
-      try {
-        await cdpSession.send("WebAuthn.removeVirtualAuthenticator", {
-          authenticatorId,
-        });
-        await cdpSession.send("WebAuthn.disable");
-      } catch (error) {
-        console.warn("Failed to clean up virtual authenticator:", error);
-      }
-    }
+    await ensureE2ETestUser();
   });
 
   test("User can navigate to keys page", async ({ page }) => {
-    // Sign in successfully
-    await signInSuccessfully(page);
-
-    // Navigate to keys page
+    // Navigate to keys page (auth is bypassed in E2E test mode)
     await page.goto("/dashboard/keys");
 
     // Should see keys page content
@@ -116,9 +28,6 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can create MCP key", async ({ page }) => {
-    // Sign in successfully
-    await signInSuccessfully(page);
-
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
@@ -149,9 +58,6 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can create server key", async ({ page }) => {
-    // Sign in successfully
-    await signInSuccessfully(page);
-
     // Navigate to keys page and switch to server tab
     await page.goto("/dashboard/keys?tab=server");
 
@@ -175,15 +81,11 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can view MCP keys", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
-
-    // Create test MCP keys for the signed-in user
-    await createTestKey(userId, "user", "MCP Key 1");
-    await createTestKey(userId, "user", "MCP Key 2");
+    // Create test MCP keys for the E2E test user
+    await createTestKey(E2E_TEST_USER.id, "user", "MCP Key 1");
+    await createTestKey(E2E_TEST_USER.id, "user", "MCP Key 2");
 
     // Navigate to keys page
-    await page.reload();
     await page.goto("/dashboard/keys");
 
     // Should see both MCP keys
@@ -192,14 +94,10 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can view server keys", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
+    // Create test server keys for the E2E test user
+    await createTestKey(E2E_TEST_USER.id, "server", "Server Key 1");
+    await createTestKey(E2E_TEST_USER.id, "server", "Server Key 2");
 
-    // Create test server keys for the signed-in user
-    await createTestKey(userId, "server", "Server Key 1");
-    await createTestKey(userId, "server", "Server Key 2");
-
-    await page.reload();
     // Navigate to keys page and switch to server tab
     await page.goto("/dashboard/keys?tab=server");
 
@@ -209,12 +107,9 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can switch between MCP and server key tabs", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
-
     // Create keys of both types
-    await createTestKey(userId, "user", "My MCP Key");
-    await createTestKey(userId, "server", "My Server Key");
+    await createTestKey(E2E_TEST_USER.id, "user", "My MCP Key");
+    await createTestKey(E2E_TEST_USER.id, "server", "My Server Key");
 
     // Navigate to keys page
     await page.goto("/dashboard/keys");
@@ -239,11 +134,8 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can delete MCP key", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
-
     // Create a test MCP key
-    const key = await createTestKey(userId, "user", "Key to Delete");
+    const key = await createTestKey(E2E_TEST_USER.id, "user", "Key to Delete");
 
     // Navigate to keys page
     await page.goto("/dashboard/keys");
@@ -265,11 +157,12 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can delete server key", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
-
     // Create a test server key
-    const key = await createTestKey(userId, "server", "Server Key to Delete");
+    const key = await createTestKey(
+      E2E_TEST_USER.id,
+      "server",
+      "Server Key to Delete",
+    );
 
     // Navigate to server keys tab
     await page.goto("/dashboard/keys?tab=server");
@@ -291,11 +184,8 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can cancel key deletion", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
-
     // Create a test key
-    const key = await createTestKey(userId, "user", "Key to Keep");
+    const key = await createTestKey(E2E_TEST_USER.id, "user", "Key to Keep");
 
     // Navigate to keys page
     await page.goto("/dashboard/keys");
@@ -316,9 +206,6 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can cancel key creation", async ({ page }) => {
-    // Sign in successfully
-    await signInSuccessfully(page);
-
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
@@ -339,38 +226,31 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("User can only see keys they created", async ({ page }) => {
-    // Create first user and their keys
-    const { userId: userId1 } = await signInSuccessfully(page);
+    // Create keys for E2E test user
+    await createTestKey(E2E_TEST_USER.id, "user", "User 1 MCP Key");
+    await createTestKey(E2E_TEST_USER.id, "server", "User 1 Server Key");
 
-    // Create keys for first user
-    await createTestKey(userId1, "user", "User 1 MCP Key");
-    await createTestKey(userId1, "server", "User 1 Server Key");
-
-    // Create a second user
-    const testUser2Email = generateTestEmail();
-    const testUser2 = await createTestUser(testUser2Email);
+    // Create a second user and their keys
+    const testUser2 = await createTestUser("Test User 2");
     await createTestKey(testUser2.id, "user", "User 2 MCP Key");
     await createTestKey(testUser2.id, "server", "User 2 Server Key");
 
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
-    // First user should only see their own MCP key
+    // E2E test user should only see their own MCP key
     await expect(page.getByText("User 1 MCP Key")).toBeVisible();
     await expect(page.getByText("User 2 MCP Key")).not.toBeVisible();
 
     // Switch to server tab
     await page.getByTestId("tab-server").click();
 
-    // First user should only see their own server key
+    // E2E test user should only see their own server key
     await expect(page.getByText("User 1 Server Key")).toBeVisible();
     await expect(page.getByText("User 2 Server Key")).not.toBeVisible();
   });
 
   test("Empty state shows create button", async ({ page }) => {
-    // Sign in successfully
-    await signInSuccessfully(page);
-
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
@@ -386,9 +266,6 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("Key creation form validation works", async ({ page }) => {
-    // Sign in successfully
-    await signInSuccessfully(page);
-
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
@@ -411,12 +288,17 @@ test.describe("Dashboard Keys Management", () => {
   });
 
   test("URL tab parameter works correctly", async ({ page }) => {
-    // Sign in successfully
-    const { userId } = await signInSuccessfully(page);
-
     // Create keys of both types
-    const mcpKey = await createTestKey(userId, "user", "MCP Key Test");
-    const serverKey = await createTestKey(userId, "server", "Server Key Test");
+    const mcpKey = await createTestKey(
+      E2E_TEST_USER.id,
+      "user",
+      "MCP Key Test",
+    );
+    const serverKey = await createTestKey(
+      E2E_TEST_USER.id,
+      "server",
+      "Server Key Test",
+    );
 
     // Navigate directly to server tab via URL
     await page.goto("/dashboard/keys?tab=server");

@@ -12,37 +12,17 @@ export async function getUserById(id: string) {
   }
 }
 
-export async function getUserByEmail(email: string) {
-  try {
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-    return user[0] || null;
-  } catch (error) {
-    console.error("Error fetching user by email:", error);
-    return null;
-  }
-}
-
 export async function createUser(data: {
-  id?: string;
+  id: string;
   name?: string | null;
-  email: string;
-  emailVerified?: Date | null;
-  image?: string | null;
   role?: "admin" | "user";
 }) {
   try {
     const newUser = await db
       .insert(users)
       .values({
-        id: data.id || crypto.randomUUID(),
+        id: data.id,
         name: data.name,
-        email: data.email,
-        emailVerified: data.emailVerified,
-        image: data.image,
         role: data.role || "user",
       })
       .returning();
@@ -58,37 +38,19 @@ export async function updateUser(
   id: string,
   data: {
     name?: string | null;
-    email?: string;
-    emailVerified?: Date | null;
-    image?: string | null;
     role?: "admin" | "user";
   },
 ) {
   try {
     const updatedUser = await db
       .update(users)
-      .set(data)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
 
     return updatedUser[0] || null;
   } catch (error) {
     console.error("Error updating user:", error);
-    throw error;
-  }
-}
-
-export async function verifyUserEmail(email: string) {
-  try {
-    const updatedUser = await db
-      .update(users)
-      .set({ emailVerified: new Date() })
-      .where(eq(users.email, email))
-      .returning();
-
-    return updatedUser[0] || null;
-  } catch (error) {
-    console.error("Error verifying user email:", error);
     throw error;
   }
 }

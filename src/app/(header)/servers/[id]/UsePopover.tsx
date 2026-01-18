@@ -119,7 +119,7 @@ export function UsePopover({
                       </div>
                       <p className="text-xs text-amber-600 dark:text-amber-400">
                         <Link
-                          href="/auth/signin"
+                          href="/api/auth/signin/oidc"
                           className="underline hover:no-underline font-medium"
                         >
                           Sign in

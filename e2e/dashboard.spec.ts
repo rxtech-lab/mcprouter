@@ -1,105 +1,24 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import {
   clearDatabase,
-  verifyUserEmail,
   createTestMcpServer,
   createTestUser,
-  getUserByEmail,
+  ensureE2ETestUser,
+  E2E_TEST_USER,
 } from "./utils/database";
 
-// Helper function to setup WebAuthn Virtual Authenticator
-async function setupWebAuthnVirtualAuthenticator(page: Page) {
-  const context = page.context();
-
-  await context.addInitScript(() => {
-    if (!window.PublicKeyCredential) {
-      (window as any).PublicKeyCredential = class {
-        static isUserVerifyingPlatformAuthenticatorAvailable() {
-          return Promise.resolve(true);
-        }
-        static isConditionalMediationAvailable() {
-          return Promise.resolve(true);
-        }
-      };
-    }
-  });
-
-  const cdpSession = await context.newCDPSession(page);
-  await cdpSession.send("WebAuthn.enable");
-
-  const { authenticatorId } = await cdpSession.send(
-    "WebAuthn.addVirtualAuthenticator",
-    {
-      options: {
-        protocol: "ctap2",
-        transport: "internal",
-        hasResidentKey: true,
-        hasUserVerification: true,
-        isUserVerified: true,
-      },
-    },
-  );
-
-  return { cdpSession, authenticatorId };
-}
-
-// Helper function to generate test email
-function generateTestEmail(): string {
-  return `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}@example.com`;
-}
-
-// Helper function for successful sign-in flow
-async function signInSuccessfully(page: Page) {
-  const testEmail = generateTestEmail();
-  // Step 2: Create WebAuthn credential by going through signup flow first
-  await page.goto("/auth/signup");
-  await page.getByTestId("email-input").fill(testEmail);
-  await page.getByTestId("passkey-signup-button").click();
-
-  await verifyUserEmail(testEmail);
-
-  // Wait for automatic redirect to dashboard after email verification
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-  // get the user id from the database
-  const user = await getUserByEmail(testEmail);
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return { testEmail, userId: user.id };
-}
-
 test.describe("Dashboard MCP Server Management", () => {
-  let cdpSession: any;
-  let authenticatorId: string;
-
   test.beforeEach(async ({ page }) => {
-    // Clear database before each test
+    // Clear database and ensure the E2E test user exists
     await clearDatabase();
-
-    // Setup WebAuthn Virtual Authenticator
-    const webauthn = await setupWebAuthnVirtualAuthenticator(page);
-    cdpSession = webauthn.cdpSession;
-    authenticatorId = webauthn.authenticatorId;
-  });
-
-  test.afterEach(async () => {
-    // Clean up the virtual authenticator
-    if (cdpSession && authenticatorId) {
-      try {
-        await cdpSession.send("WebAuthn.removeVirtualAuthenticator", {
-          authenticatorId,
-        });
-        await cdpSession.send("WebAuthn.disable");
-      } catch (error) {
-        console.warn("Failed to clean up virtual authenticator:", error);
-      }
-    }
+    await ensureE2ETestUser();
   });
 
   test("User can create MCP server", async ({ page }) => {
-    // Sign in successfully
-    const { testEmail, userId } = await signInSuccessfully(page);
+    // Navigate to dashboard (auth is bypassed in E2E test mode)
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/dashboard/);
+
     // Click create server button
     await page.getByTestId("create-server-button").click();
 
@@ -146,20 +65,19 @@ test.describe("Dashboard MCP Server Management", () => {
   });
 
   test("User can view MCP servers", async ({ page }) => {
-    // Sign in successfully
-    const { testEmail, userId } = await signInSuccessfully(page);
-
-    // Create test MCP servers for the signed-in user
-    await createTestMcpServer(userId, {
+    // Create test MCP servers for the E2E test user
+    await createTestMcpServer(E2E_TEST_USER.id, {
       name: "Server 1",
       category: "crypto",
     });
-    await createTestMcpServer(userId, {
+    await createTestMcpServer(E2E_TEST_USER.id, {
       name: "Server 2",
       category: "finance",
     });
 
-    await page.reload();
+    // Navigate to dashboard
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/dashboard/);
 
     // Should see both servers
     await expect(page.getByText("Server 1")).toBeVisible();
@@ -170,15 +88,14 @@ test.describe("Dashboard MCP Server Management", () => {
   });
 
   test("User can update MCP server", async ({ page }) => {
-    // Sign in successfully
-    const { testEmail, userId } = await signInSuccessfully(page);
-
-    const server = await createTestMcpServer(userId, {
+    const server = await createTestMcpServer(E2E_TEST_USER.id, {
       name: "Original Server Name",
       category: "crypto",
     });
 
-    await page.reload();
+    // Navigate to dashboard
+    await page.goto("/dashboard");
+
     // Find the server card and click menu
     const serverCard = page.getByTestId(`server-card-${server.id}`);
     await serverCard.getByTestId("server-card-menu").click();
@@ -205,16 +122,15 @@ test.describe("Dashboard MCP Server Management", () => {
   });
 
   test("User can delete MCP server", async ({ page }) => {
-    // Sign in successfully
-    const { testEmail, userId } = await signInSuccessfully(page);
-
-    const server = await createTestMcpServer(userId, {
+    const server = await createTestMcpServer(E2E_TEST_USER.id, {
       name: "Server to Delete",
       category: "crypto",
     });
 
+    // Navigate to dashboard
+    await page.goto("/dashboard");
+
     // Find the server card and click menu
-    await page.reload();
     const serverCard = page.getByTestId(`server-card-${server.id}`);
     await serverCard.getByTestId("server-card-menu").click();
 
@@ -233,8 +149,8 @@ test.describe("Dashboard MCP Server Management", () => {
   });
 
   test("User can close create form without saving", async ({ page }) => {
-    // Sign in successfully
-    const { testEmail, userId } = await signInSuccessfully(page);
+    // Navigate to dashboard
+    await page.goto("/dashboard");
 
     // Click create server button
     await page.getByTestId("create-server-button").click();
@@ -247,35 +163,32 @@ test.describe("Dashboard MCP Server Management", () => {
   });
 
   test("User can only see servers they created", async ({ page }) => {
-    // Create first user and their servers
-    const { userId: userId1 } = await signInSuccessfully(page);
-
-    // Create servers for first user
-    await createTestMcpServer(userId1, {
+    // Create servers for E2E test user
+    await createTestMcpServer(E2E_TEST_USER.id, {
       name: "User 1 Server A",
       category: "crypto",
     });
-    await createTestMcpServer(userId1, {
+    await createTestMcpServer(E2E_TEST_USER.id, {
       name: "User 1 Server B",
       category: "finance",
     });
 
-    // Create a second user
-    const testUser2Email = generateTestEmail();
-    const testUser2 = await createTestUser(testUser2Email);
+    // Create a second user and their server
+    const testUser2 = await createTestUser("Test User 2");
     await createTestMcpServer(testUser2.id, {
       name: "User 2 Server",
       category: "tools",
     });
 
-    await page.reload();
+    // Navigate to dashboard
+    await page.goto("/dashboard");
 
-    // First user should only see their own servers
+    // E2E test user should only see their own servers
     await expect(page.getByText("User 1 Server A")).toBeVisible();
     await expect(page.getByText("User 1 Server B")).toBeVisible();
     await expect(page.getByText("User 2 Server")).not.toBeVisible();
 
-    // Should show correct count for first user (only their servers)
+    // Should show correct count (only their servers)
     await expect(page.getByText("2 servers found")).toBeVisible();
   });
 });

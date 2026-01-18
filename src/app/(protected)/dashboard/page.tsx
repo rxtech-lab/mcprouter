@@ -25,7 +25,7 @@ export default async function DashboardPage({
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    redirect("/api/auth/signin/oidc?callbackUrl=/dashboard");
   }
 
   const params = await searchParams;

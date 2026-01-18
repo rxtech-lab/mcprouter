@@ -16,7 +16,7 @@ export default async function KeysPage({
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    redirect("/api/auth/signin/oidc?callbackUrl=/dashboard/keys");
   }
 
   const params = await searchParams;
