@@ -14,8 +14,8 @@ jobs:
     timeout-minutes: 60
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: lts/*
       - uses: oven-sh/setup-bun@v2
@@ -41,7 +41,7 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Playwright tests
         run: bun run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
