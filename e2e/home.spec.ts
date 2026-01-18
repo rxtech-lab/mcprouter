@@ -171,6 +171,7 @@ test.describe("Home Page", () => {
   }) => {
     // Don't create any servers
     await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
     // Should show no servers message
     await expect(page.getByTestId("no-servers")).toBeVisible();
