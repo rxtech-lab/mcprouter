@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
+import type { Session } from "next-auth";
 import { db, users } from "./lib/db";
 
 // E2E test user configuration
@@ -9,7 +10,12 @@ const E2E_TEST_USER = {
   role: "user" as const,
 };
 
-export const { handlers, signIn, auth, signOut } = NextAuth({
+const {
+  handlers,
+  signIn,
+  auth: nextAuthAuth,
+  signOut,
+} = NextAuth({
   pages: {
     error: "/auth/error",
   },
@@ -78,18 +84,6 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      // E2E test mode - return mock session
-      if (process.env.IS_E2E_TEST === "true") {
-        return {
-          ...session,
-          user: {
-            id: E2E_TEST_USER.id,
-            name: E2E_TEST_USER.name,
-            role: E2E_TEST_USER.role,
-          },
-        };
-      }
-
       session.user.id = token.id as string;
       session.user.name = token.name as string;
       session.user.role = (token.role as string) || "user";
@@ -97,3 +91,26 @@ export const { handlers, signIn, auth, signOut } = NextAuth({
     },
   },
 });
+
+/**
+ * Wrapped auth function that bypasses NextAuth in E2E test mode.
+ *
+ * In E2E mode, returns a mock session directly without JWT validation.
+ * This is necessary because E2E tests don't perform real OAuth login,
+ * so there's no JWT cookie for NextAuth to decode.
+ */
+export async function auth(): Promise<Session | null> {
+  if (process.env.IS_E2E_TEST === "true") {
+    return {
+      user: {
+        id: E2E_TEST_USER.id,
+        name: E2E_TEST_USER.name,
+        role: E2E_TEST_USER.role,
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
+  }
+  return nextAuthAuth();
+}
+
+export { handlers, signIn, signOut };

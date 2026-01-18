@@ -52,6 +52,8 @@ test.describe("Home Page", () => {
       isPublic: true,
     });
 
+    await page.waitForTimeout(1000)
+
     await page.goto("/");
 
     // Wait for servers to load
