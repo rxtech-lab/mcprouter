@@ -1,32 +1,27 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import {
-  users,
-  accounts,
-  sessions,
-  authenticators,
-  mcpServers,
-  keys,
-  changelogs,
-} from "../../src/lib/db/schema";
+import { users, mcpServers, keys, changelogs } from "../../src/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { hashKey, generateRandomKey } from "@/lib/db/queries/key_queries";
 
 const sql = neon(process.env.TEST_DATABASE_URL!);
 const db = drizzle(sql);
 
+// E2E test user that will be used when IS_E2E_TEST is enabled
+export const E2E_TEST_USER = {
+  id: "e2e-test-user-id",
+  name: "E2E Test User",
+  role: "user" as const,
+};
+
 export async function clearDatabase() {
   try {
     // Clear all tables in the correct order (respecting foreign key constraints)
     // Child tables first, then parent tables
-    // Use try-catch for each table in case some don't exist yet
     const tablesToClear = [
       { name: "changelogs", table: changelogs },
       { name: "mcpServers", table: mcpServers },
       { name: "keys", table: keys },
-      { name: "authenticators", table: authenticators },
-      { name: "accounts", table: accounts },
-      { name: "sessions", table: sessions },
       { name: "users", table: users },
     ];
 
@@ -52,92 +47,14 @@ export async function clearDatabase() {
   }
 }
 
-export async function verifyUserEmail(email: string) {
+export async function createTestUser(name?: string) {
   try {
-    // Wait for user to be created (WebAuthn signup may take some time)
-    let user = null;
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    while (!user && attempts < maxAttempts) {
-      const existingUser = await getUserByEmail(email);
-      if (existingUser) {
-        user = existingUser;
-        break;
-      }
-
-      console.log(
-        `[TEST DB] Waiting for user ${email} to be created... (attempt ${attempts + 1}/${maxAttempts})`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
-      attempts++;
-    }
-
-    if (!user) {
-      throw new Error(
-        `User with email ${email} not found after ${maxAttempts} attempts`,
-      );
-    }
-
-    const result = await db
-      .update(users)
-      .set({ emailVerified: new Date() })
-      .where(eq(users.email, email))
-      .returning({
-        id: users.id,
-        email: users.email,
-        emailVerified: users.emailVerified,
-      });
-
-    if (result.length === 0) {
-      throw new Error(`Failed to verify user with email ${email}`);
-    }
-
-    console.log(`[TEST DB] User ${email} verified successfully`, result[0]);
-    return result[0];
-  } catch (error) {
-    console.error(`[TEST DB] Error verifying user ${email}:`, error);
-    throw error;
-  }
-}
-
-export async function getUserByEmail(email: string) {
-  try {
-    const result = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-
-    return result[0] || null;
-  } catch (error) {
-    console.error(`[TEST DB] Error getting user ${email}:`, error);
-    throw error;
-  }
-}
-
-export async function isUserEmailVerified(email: string): Promise<boolean> {
-  try {
-    const user = await getUserByEmail(email);
-    return user ? !!user.emailVerified : false;
-  } catch (error) {
-    console.error(
-      `[TEST DB] Error checking verification status for ${email}:`,
-      error,
-    );
-    throw error;
-  }
-}
-
-export async function createTestUser(email: string, name?: string) {
-  try {
+    const userId = `test_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const result = await db
       .insert(users)
       .values({
-        id: `test_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-        email,
+        id: userId,
         name: name || "Test User",
-        emailVerified: null,
         role: "user",
       })
       .returning();
@@ -145,7 +62,41 @@ export async function createTestUser(email: string, name?: string) {
     console.log(`[TEST DB] Test user created:`, result[0]);
     return result[0];
   } catch (error) {
-    console.error(`[TEST DB] Error creating test user ${email}:`, error);
+    console.error(`[TEST DB] Error creating test user:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Ensures the E2E test user exists in the database.
+ * This should be called before tests that need the mock session user.
+ */
+export async function ensureE2ETestUser() {
+  try {
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, E2E_TEST_USER.id))
+      .limit(1);
+
+    if (existingUser.length > 0) {
+      console.log(`[TEST DB] E2E test user already exists`);
+      return existingUser[0];
+    }
+
+    const result = await db
+      .insert(users)
+      .values({
+        id: E2E_TEST_USER.id,
+        name: E2E_TEST_USER.name,
+        role: E2E_TEST_USER.role,
+      })
+      .returning();
+
+    console.log(`[TEST DB] E2E test user created:`, result[0]);
+    return result[0];
+  } catch (error) {
+    console.error(`[TEST DB] Error ensuring E2E test user:`, error);
     throw error;
   }
 }
@@ -222,7 +173,7 @@ export async function createTestMcpServer(
 ) {
   try {
     // Ensure the user exists
-    let user = await db
+    const user = await db
       .select()
       .from(users)
       .where(eq(users.id, userId))
@@ -231,9 +182,7 @@ export async function createTestMcpServer(
       // Create test user if it doesn't exist
       await db.insert(users).values({
         id: userId,
-        email: `${userId}@test.com`,
         name: "Test User",
-        emailVerified: new Date(),
         role: "user",
       });
       console.log(`[TEST DB] Created test user: ${userId}`);
@@ -250,7 +199,7 @@ export async function createTestMcpServer(
 
     const mergedData = { ...defaultData, ...serverData };
 
-    // Create the insert data, omitting fields that might not exist in the test DB
+    // Create the insert data
     const insertData = {
       id: `test_server_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: mergedData.name,
@@ -281,7 +230,7 @@ export async function createTestKey(
 ) {
   try {
     // Ensure the user exists
-    let user = await db
+    const user = await db
       .select()
       .from(users)
       .where(eq(users.id, userId))
@@ -290,9 +239,7 @@ export async function createTestKey(
       // Create test user if it doesn't exist
       await db.insert(users).values({
         id: userId,
-        email: `${userId}@test.com`,
         name: "Test User",
-        emailVerified: new Date(),
         role: "user",
       });
       console.log(`[TEST DB] Created test user: ${userId}`);

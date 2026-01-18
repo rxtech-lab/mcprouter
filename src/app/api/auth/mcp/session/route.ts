@@ -70,9 +70,7 @@ export async function POST(request: NextRequest) {
       .select({
         id: users.id,
         name: users.name,
-        email: users.email,
         role: users.role,
-        emailVerified: users.emailVerified,
       })
       .from(users)
       .where(eq(users.id, userKeyRecord.createdBy))
@@ -87,9 +85,7 @@ export async function POST(request: NextRequest) {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email,
         role: user.role,
-        emailVerified: user.emailVerified,
       },
     });
   } catch (error) {

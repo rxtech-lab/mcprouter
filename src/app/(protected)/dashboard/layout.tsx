@@ -15,11 +15,7 @@ export default async function ProtectedLayout({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/auth/signin");
-  }
-
-  if (session.user.email && !session.user.emailVerified) {
-    redirect(`/auth/error?error=EmailNotVerified&email=${session.user.email}`);
+    redirect("/api/auth/signin/oidc?callbackUrl=/dashboard");
   }
 
   return (

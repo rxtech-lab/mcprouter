@@ -1,7 +1,5 @@
 import "server-only";
 
-import { generateVerificationToken, generateTokenExpiry } from "./auth-utils";
-import { createVerificationToken } from "./redis/verification-queries";
 import { getKeyById } from "./db/queries/key_queries";
 import type {
   McpAuthenticationMethod,
@@ -10,16 +8,6 @@ import type {
   DownloadLink,
   ImageStructure,
 } from "./db/queries/mcp_queries";
-
-export async function getVerificationUrl(email: string) {
-  const token = generateVerificationToken();
-  const expires = generateTokenExpiry();
-  const isPlaywrightTest = process.env.IS_PLAYWRIGHT_TEST === "true";
-  if (!isPlaywrightTest) {
-    await createVerificationToken(email, token, expires);
-  }
-  return `${process.env.AUTH_URL}/auth/verify?email=${encodeURIComponent(email)}&token=${token}`;
-}
 
 /**
  * MCP Server data structure for URL generation
@@ -54,7 +42,7 @@ export interface McpServerData {
 export function generateUrlWithApiKey(
   baseUrl: string,
   apiKey: string,
-  version?: string | null
+  version?: string | null,
 ): string {
   let url = baseUrl;
 
@@ -80,7 +68,7 @@ export function generateUrlWithApiKey(
  */
 export function constructMcpServerUrl(
   mcpServer: McpServerData,
-  userApiKey: string
+  userApiKey: string,
 ): string | null {
   if (!mcpServer.url) {
     return null;
@@ -112,7 +100,7 @@ export function constructMcpServerUrl(
 export async function validateApiKeyForServer(
   serverId: string,
   userId: string,
-  keyId: string
+  keyId: string,
 ): Promise<boolean> {
   try {
     // Get the key to verify ownership and type

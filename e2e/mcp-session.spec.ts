@@ -11,7 +11,7 @@ test.describe("MCP Session Authentication API", () => {
     await clearDatabase();
 
     // Create test user
-    testUser = await createTestUser("test@example.com", "Test User");
+    testUser = await createTestUser("Test User");
 
     // Create server key for authentication
     serverKey = await createTestKey(testUser.id, "server", "Test Server Key");
@@ -162,45 +162,14 @@ test.describe("MCP Session Authentication API", () => {
       user: {
         id: testUser.id,
         name: testUser.name,
-        email: testUser.email,
         role: testUser.role,
-        emailVerified: testUser.emailVerified,
       },
     });
-  });
-
-  test("should return user data with null emailVerified when user is not verified", async ({
-    request,
-  }) => {
-    // Create a new user that's not verified
-    const unverifiedUser = await createTestUser(
-      "unverified@example.com",
-      "Unverified User",
-    );
-    const unverifiedUserKey = await createTestKey(
-      unverifiedUser.id,
-      "user",
-      "Unverified User Key",
-    );
-
-    const response = await request.post("/api/auth/mcp/session", {
-      headers: {
-        "x-api-key": serverKey.rawKey,
-      },
-      data: {
-        userKey: unverifiedUserKey.rawKey,
-      },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.user.emailVerified).toBeNull();
-    expect(body.user.email).toBe("unverified@example.com");
   });
 
   test("should work with keys from different users", async ({ request }) => {
     // Create another user with their own keys
-    const otherUser = await createTestUser("other@example.com", "Other User");
+    const otherUser = await createTestUser("Other User");
     const otherServerKey = await createTestKey(
       otherUser.id,
       "server",
@@ -224,14 +193,14 @@ test.describe("MCP Session Authentication API", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.user.id).toBe(otherUser.id);
-    expect(body.user.email).toBe("other@example.com");
+    expect(body.user.name).toBe("Other User");
   });
 
   test("should work with cross-user authentication (server key from one user, user key from another)", async ({
     request,
   }) => {
     // Create another user
-    const otherUser = await createTestUser("other@example.com", "Other User");
+    const otherUser = await createTestUser("Other User");
     const otherUserKey = await createTestKey(
       otherUser.id,
       "user",
@@ -251,7 +220,7 @@ test.describe("MCP Session Authentication API", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.user.id).toBe(otherUser.id);
-    expect(body.user.email).toBe("other@example.com");
+    expect(body.user.name).toBe("Other User");
   });
 
   test("should handle malformed JSON in request body", async ({ request }) => {

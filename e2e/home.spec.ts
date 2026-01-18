@@ -52,6 +52,8 @@ test.describe("Home Page", () => {
       isPublic: true,
     });
 
+    await page.waitForTimeout(1000)
+
     await page.goto("/");
 
     // Wait for servers to load
@@ -169,6 +171,7 @@ test.describe("Home Page", () => {
   }) => {
     // Don't create any servers
     await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
     // Should show no servers message
     await expect(page.getByTestId("no-servers")).toBeVisible();

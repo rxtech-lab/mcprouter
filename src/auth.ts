@@ -1,248 +1,116 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import {
-  verifyAuthenticationResponse,
-  verifyRegistrationResponse,
-} from "@simplewebauthn/server";
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import { accounts, authenticators, db, users } from "./lib/db";
-import { getUserByEmail, getUserById } from "./lib/db/queries/user_queries";
-import { sendVerificationEmail } from "./lib/email";
-import { AuthenticatorNotFoundError } from "./lib/errors/auth.error";
-import {
-  deleteAuthenticationChallenge,
-  deleteRegistrationChallenge,
-  getAuthenticationChallenge,
-  getRegistrationChallenge,
-} from "./lib/redis/challenge-queries";
-import { getVerificationUrl } from "./lib/server-utils";
+import type { Session } from "next-auth";
+import { db, users } from "./lib/db";
 
-export const { handlers, signIn, auth, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    authenticatorsTable: authenticators,
-  }),
+// E2E test user configuration
+const E2E_TEST_USER = {
+  id: "e2e-test-user-id",
+  name: "E2E Test User",
+  role: "user" as const,
+};
+
+const {
+  handlers,
+  signIn,
+  auth: nextAuthAuth,
+  signOut,
+} = NextAuth({
   pages: {
-    signIn: "/auth/signin",
-    verifyRequest: "/auth/verify-request",
     error: "/auth/error",
   },
   session: { strategy: "jwt" },
   providers: [
-    Google,
-    Credentials({
-      id: "webauthn-registration",
-      name: "WebAuthn Registration",
-      credentials: {
-        credential: { type: "text" },
-        sessionId: { type: "text" },
+    {
+      id: "oidc",
+      name: "OAuth Server",
+      type: "oidc",
+      issuer: process.env.OAUTH_SERVER_URL,
+      clientId: process.env.OAUTH_CLIENT_ID,
+      clientSecret: process.env.OAUTH_CLIENT_SECRET,
+      client: {
+        token_endpoint_auth_method: "client_secret_post",
       },
-      async authorize({ credential, sessionId }: any) {
-        if (!credential || !sessionId) {
-          return null;
-        }
-
-        const parsedCredential = JSON.parse(credential);
-
-        // Get challenge from Redis
-        const challengeData = await getRegistrationChallenge(sessionId);
-        if (!challengeData) {
-          return null;
-        }
-
-        // Verify the registration response
-        const verification = await verifyRegistrationResponse({
-          response: parsedCredential,
-          expectedChallenge: challengeData.challenge,
-          expectedOrigin:
-            process.env.WEBAUTHN_ORIGIN || "http://localhost:3000",
-          expectedRPID: process.env.WEBAUTHN_RP_ID || "localhost",
-        });
-
-        if (!verification.verified || !verification.registrationInfo) {
-          return null;
-        }
-
-        const { credentialID, credentialPublicKey, counter } =
-          verification.registrationInfo;
-
-        // Handle new user signup only
-        if (!challengeData.userId || !challengeData.email) {
-          return null;
-        }
-
-        const existingUser = await getUserByEmail(challengeData.email);
-        if (existingUser?.emailVerified) {
-          return null; // User already exists
-        }
-
-        // Create new user (email verification still required)
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            id: challengeData.userId,
-            email: challengeData.email,
-            emailVerified: null, // Email verification required even for passkey signup
-            name: challengeData.email.split("@")[0],
-          })
-          .returning();
-
-        // Store the authenticator
-        await db.insert(authenticators).values({
-          credentialID: Buffer.from(credentialID).toString("base64url"),
-          userId: newUser.id,
-          providerAccountId: crypto.randomUUID(),
-          credentialPublicKey:
-            Buffer.from(credentialPublicKey).toString("base64url"),
-          counter,
-          credentialDeviceType: "singleDevice",
-          credentialBackedUp: false,
-          transports: parsedCredential.response.transports?.join(",") || null,
-        });
-
-        // Clean up challenge
-        await Promise.allSettled([
-          deleteRegistrationChallenge(sessionId),
-          sendVerificationEmail(
-            newUser.email!,
-            await getVerificationUrl(newUser.email!)
-          ),
-        ]);
-
+      authorization: {
+        params: {
+          scope: "openid read:profile",
+        },
+      },
+      profile(profile) {
         return {
-          id: newUser.id,
-          email: newUser.email,
-          name: newUser.name,
-          emailVerified: newUser.emailVerified,
-          role: newUser.role || "user",
-          firstLogin: true,
+          id: profile.sub,
+          userId: profile.sub,
+          name: profile.name || profile.preferred_username || "User",
+          role: "user",
         };
       },
-    }),
-    Credentials({
-      id: "webauthn-authentication",
-      name: "WebAuthn Authentication",
-      credentials: {
-        credential: { type: "text" },
-        sessionId: { type: "text" },
-      },
-      async authorize({ credential, sessionId }: any) {
-        if (!credential || !sessionId) {
-          return null;
-        }
-
-        const parsedCredential = JSON.parse(credential);
-
-        // Get challenge from Redis
-        const challengeData = await getAuthenticationChallenge(sessionId);
-        if (!challengeData) {
-          return null;
-        }
-
-        // Find the authenticator
-        const credentialID = Buffer.from(
-          parsedCredential.rawId,
-          "base64url"
-        ).toString("base64url");
-
-        const authenticator = await db
-          .select({
-            credentialID: authenticators.credentialID,
-            credentialPublicKey: authenticators.credentialPublicKey,
-            counter: authenticators.counter,
-            userId: authenticators.userId,
-            userEmail: users.email,
-            userName: users.name,
-            userEmailVerified: users.emailVerified,
-            userRole: users.role,
-          })
-          .from(authenticators)
-          .innerJoin(users, eq(authenticators.userId, users.id))
-          .where(eq(authenticators.credentialID, credentialID))
-          .limit(1);
-
-        if (!authenticator[0]) {
-          throw new AuthenticatorNotFoundError();
-        }
-
-        const auth = authenticator[0];
-
-        // Verify the authentication response
-        const verification = await verifyAuthenticationResponse({
-          response: parsedCredential,
-          expectedChallenge: challengeData.challenge,
-          expectedOrigin:
-            process.env.WEBAUTHN_ORIGIN || "http://localhost:3000",
-          expectedRPID: process.env.WEBAUTHN_RP_ID || "localhost",
-          authenticator: {
-            credentialID: Buffer.from(auth.credentialID, "base64url"),
-            credentialPublicKey: Buffer.from(
-              auth.credentialPublicKey,
-              "base64url"
-            ),
-            counter: auth.counter,
-          },
-        });
-
-        if (!verification.verified) {
-          return null;
-        }
-
-        // Update counter
-        if (verification.authenticationInfo?.newCounter !== undefined) {
-          await db
-            .update(authenticators)
-            .set({ counter: verification.authenticationInfo.newCounter })
-            .where(eq(authenticators.credentialID, credentialID));
-        }
-
-        // Clean up challenge
-        await deleteAuthenticationChallenge(sessionId);
-
-        return {
-          id: auth.userId,
-          email: auth.userEmail,
-          name: auth.userName,
-          emailVerified: auth.userEmailVerified,
-          role: auth.userRole || "user",
-        };
-      },
-    }),
+    },
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (!user.emailVerified && account?.provider === "google") {
-        // send verification email
-        await sendVerificationEmail(
-          user.email!,
-          await getVerificationUrl(user.email!)
-        );
+    async signIn({ user }) {
+      // E2E test bypass - always allow
+      if (process.env.IS_E2E_TEST === "true") {
+        return true;
       }
+      // Upsert user in database
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, (user as any).userId!))
+        .limit(1);
+
+      if (!existingUser.length) {
+        await db.insert(users).values({
+          id: (user as any).userId!,
+          name: user.name,
+          role: "user",
+        });
+      } else {
+        // Update name if changed
+        await db
+          .update(users)
+          .set({ name: user.name, updatedAt: new Date() })
+          .where(eq(users.id, user.id!));
+      }
+
       return true;
     },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.emailVerified = user.emailVerified;
+        token.name = user.name;
         token.role = user.role || "user";
       }
       return token;
     },
     async session({ session, token }) {
-      // get user from database
-      const user = await getUserById(token.id as string);
-      if (user) {
-        session.user.emailVerified = user.emailVerified;
-        // if email is not verified, redirect to error page
-
-        session.user.role = user.role || "user";
-        session.user.id = user.id;
-      }
-
+      session.user.id = token.id as string;
+      session.user.name = token.name as string;
+      session.user.role = (token.role as string) || "user";
       return session;
     },
   },
 });
+
+/**
+ * Wrapped auth function that bypasses NextAuth in E2E test mode.
+ *
+ * In E2E mode, returns a mock session directly without JWT validation.
+ * This is necessary because E2E tests don't perform real OAuth login,
+ * so there's no JWT cookie for NextAuth to decode.
+ */
+export async function auth(): Promise<Session | null> {
+  if (process.env.IS_E2E_TEST === "true") {
+    return {
+      user: {
+        id: E2E_TEST_USER.id,
+        name: E2E_TEST_USER.name,
+        role: E2E_TEST_USER.role,
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
+  }
+  return nextAuthAuth();
+}
+
+export { handlers, signIn, signOut };
