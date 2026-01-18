@@ -70,14 +70,14 @@ const {
         await db
           .update(users)
           .set({ name: user.name, updatedAt: new Date() })
-          .where(eq(users.id, user.id!));
+          .where(eq(users.id, (user as any).userId!));
       }
 
       return true;
     },
     jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = (user as any).userId || user.id;
         token.name = user.name;
         token.role = user.role || "user";
       }
