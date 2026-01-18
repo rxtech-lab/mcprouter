@@ -31,6 +31,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
+    await page.waitForLoadState("networkidle");
+
     // Click create key button
     await page.getByTestId("create-key-button").click();
 
@@ -61,6 +63,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to keys page and switch to server tab
     await page.goto("/dashboard/keys?tab=server");
 
+    await page.waitForLoadState("networkidle");
+
     // Click create key button
     await page.getByTestId("create-key-button").click();
 
@@ -88,6 +92,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
+    await page.waitForLoadState("networkidle");
+
     // Should see both MCP keys
     await expect(page.getByText("MCP Key 1")).toBeVisible();
     await expect(page.getByText("MCP Key 2")).toBeVisible();
@@ -100,6 +106,8 @@ test.describe("Dashboard Keys Management", () => {
 
     // Navigate to keys page and switch to server tab
     await page.goto("/dashboard/keys?tab=server");
+
+    await page.waitForLoadState("networkidle");
 
     // Should see both server keys
     await expect(page.getByText("Server Key 1")).toBeVisible();
@@ -114,6 +122,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
+    await page.waitForLoadState("networkidle");
+
     // Should see MCP key by default
     await expect(page.getByText("My MCP Key")).toBeVisible();
     await expect(page.getByText("My Server Key")).not.toBeVisible();
@@ -121,12 +131,16 @@ test.describe("Dashboard Keys Management", () => {
     // Switch to server tab
     await page.getByTestId("tab-server").click();
 
+    await page.waitForLoadState("networkidle");
+
     // Should see server key
     await expect(page.getByText("My Server Key")).toBeVisible();
     await expect(page.getByText("My MCP Key")).not.toBeVisible();
 
     // Switch back to MCP tab
     await page.getByTestId("tab-mcp").click();
+
+    await page.waitForLoadState("networkidle");
 
     // Should see MCP key again
     await expect(page.getByText("My MCP Key")).toBeVisible();
@@ -139,6 +153,8 @@ test.describe("Dashboard Keys Management", () => {
 
     // Navigate to keys page
     await page.goto("/dashboard/keys");
+
+    await page.waitForLoadState("networkidle");
 
     // Setup dialog handler for confirmation
     page.on("dialog", (dialog) => {
@@ -167,6 +183,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to server keys tab
     await page.goto("/dashboard/keys?tab=server");
 
+    await page.waitForLoadState("networkidle");
+
     // Setup dialog handler for confirmation
     page.on("dialog", (dialog) => {
       expect(dialog.message()).toContain(
@@ -190,6 +208,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
+    await page.waitForLoadState("networkidle");
+
     // Setup dialog handler to cancel
     page.on("dialog", (dialog) => {
       expect(dialog.message()).toContain(
@@ -208,6 +228,8 @@ test.describe("Dashboard Keys Management", () => {
   test("User can cancel key creation", async ({ page }) => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
+
+    await page.waitForLoadState("networkidle");
 
     // Click create key button
     await page.getByTestId("create-key-button").click();
@@ -254,6 +276,8 @@ test.describe("Dashboard Keys Management", () => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
 
+    await page.waitForLoadState("networkidle");
+
     // Should see empty state with create button
     await expect(page.getByTestId("no-mcp-keys-message")).toBeVisible();
     await expect(page.getByTestId("create-first-key-button")).toBeVisible();
@@ -268,6 +292,8 @@ test.describe("Dashboard Keys Management", () => {
   test("Key creation form validation works", async ({ page }) => {
     // Navigate to keys page
     await page.goto("/dashboard/keys");
+
+    await page.waitForLoadState("networkidle");
 
     // Click create key button
     await page.getByTestId("create-key-button").click();
@@ -302,6 +328,8 @@ test.describe("Dashboard Keys Management", () => {
 
     // Navigate directly to server tab via URL
     await page.goto("/dashboard/keys?tab=server");
+
+    await page.waitForLoadState("networkidle");
 
     // Should be on server tab
     await expect(page.getByTestId("tab-server")).toHaveAttribute(
