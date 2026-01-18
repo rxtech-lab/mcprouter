@@ -50,6 +50,7 @@ export default defineConfig({
       IS_PLAYWRIGHT_TEST: "true",
       IS_E2E_TEST: "true",
       NEXTAUTH_URL: "http://localhost:3000",
+      OAUTH_SERVER_URL: "https://dummy-issuer.example.com",
       OAUTH_CLIENT_ID: "secret",
       OAUTH_CLIENT_SECRET: "secret",
     },
